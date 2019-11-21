@@ -29,7 +29,7 @@ before_script:
 
 script:
   - cd ..
-  - mv Passive-Data-Kit-External-Data-Django passive_data_kit_external_data
+  - mv Passive-Data-Kit-External-Data passive_data_kit_external_data
   - mkdir django
   - cd django
   - django-admin.py startproject pdk
