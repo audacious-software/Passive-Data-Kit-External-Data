@@ -59,7 +59,7 @@ class ExternalDataRequest(models.Model):
 
         token_exists = True
 
-        token = ''
+        token = None
 
         while token_exists:
             token = ''.join(random.SystemRandom().choice(valid_characters) for _ in range(256))
