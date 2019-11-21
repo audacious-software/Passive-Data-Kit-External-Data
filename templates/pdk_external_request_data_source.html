@@ -1,0 +1,18 @@
+{% extends "pdk_external_request_base.html" %}
+
+{% block 'page_title' %}{{ source.name }}{% endblock %}
+
+{% block 'page_content_title' %}{{ source.name }}{% endblock %}
+
+{% block 'page_content' %}
+	{{ source.instruction_content }}
+	<div class="row">
+		<div class="col-sm">
+			
+            <form method="POST" action="{% url 'pdk_external_request_data' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary float-right">Next</button>
+            </form>
+		</div>
+	</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "pdk_external_request_base.html" %}
+
+{% block 'page_title' %}{{ source.name }}{% endblock %}
+
+{% block 'page_content_title' %}{{ source.name }}{% endblock %}
+
+{% block 'page_content' %}
+	{{ source.instruction_content }}
+{% endblock %}

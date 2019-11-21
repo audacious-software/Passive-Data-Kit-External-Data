@@ -1,0 +1,69 @@
+{% extends "pdk_external_request_base.html" %}
+{% load static from staticfiles %}
+
+{% block 'page_title' %}External Data | Passive Data Kit{% endblock %}
+
+{% block 'page_content_title' %}External Data | Passive Data Kit{% endblock %}
+
+{% block 'page_navbar_links' %}{% endblock %}
+
+{% block 'page_content' %}
+    <div class="row">
+        <div class="col-sm">
+            <p>
+                Welcome to Passive Data Kit's external data collection tool.
+            <p>
+
+            <p>
+                These site will assist you in exporting data from external sources and incorporating that data into a Passive Data Kit repository.
+            <p>
+            
+            <p>
+                To get started, please provide the following details:
+            <p>
+            
+            <form method="POST" action="{% url 'pdk_external_request_data' %}">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="basic_details" />
+                <div class="form-group">
+                    <label for="email-address">E-Mail Address</label>
+                    <input type="email" class="form-control" id="email-address" name="email" aria-describedby="email-help" placeholder="Enter e-mail address" value="{{ request.session.email }}">
+                    <small id="email-help" class="form-text text-muted">We do not share your e-mail address with anyone else and only use it for operational purposes such as reporting errors or reminding you to upload pending data.</small>
+                </div>
+                <div class="form-group">
+                    <label for="study-identifier">Study Identifier</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="study-identifier" name="identifier"  placeholder="Assigned Study Identifier"  value="{{ request.session.identifier }}">
+                        <div class="input-group-append">
+                            <button class="input-group-text" id="generate_button">Generate</button>
+                        </div>
+                    </div>
+                    <small id="email-help" class="form-text text-muted">Please enter your assigned identifier. If none has been provided, please tap the button above to generate one.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="study-identifier">Your Memberships</label>
+                    {% for source in sources %}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="check_{{ source.pk }}" name="{{ source.identifier }}" />
+                            <label class="form-check-label" for="check_{{ source.pk }}">{{ source.name }}</label>
+                        </div>
+                    {% endfor %}
+                    <small class="form-text text-muted">
+                        Please select <strong>all</strong> of the sites you belong to above. 
+                        We will walk you through the process of retrieving your data from each that you select.
+                    </small>
+                </div>
+                    
+                <button type="submit" class="btn btn-primary float-right">Next</button>
+            </form>
+        </div>
+        <div class="col-sm">
+            (General information about the study goes here.)
+        </div>
+    </div>
+{% endblock %}
+
+{% block 'js_init' %}		
+	<script data-main="{% static 'pdk_external/start.js' %}" src="{% static 'pdk_external/lib/require.js' %}"></script>
+{% endblock %}
