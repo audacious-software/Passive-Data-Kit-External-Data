@@ -3,11 +3,13 @@
 from __future__ import unicode_literals
 
 import importlib
+import json
 import random
 
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 
 class ExternalDataSource(models.Model):
@@ -15,13 +17,21 @@ class ExternalDataSource(models.Model):
     identifier = models.SlugField(max_length=1024, unique=True)
     priority = models.IntegerField(default=0)
 
+    configuration = models.TextField(max_length=(1024*1024), default='{}')
+
     export_url = models.URLField(null=True, blank=True)
 
     def instruction_content(self):
-        return render_to_string('sources/pdk_export_instructions_' + self.identifier + '.html')
+        context = {'source': self}
+
+        return render_to_string('sources/pdk_export_instructions_' + self.identifier + '.html', context=context)
 
     def __unicode__(self):
         return self.name
+        
+    def fetch_configuration(self):
+        # return json.loads(self.configuration)
+        return json.loads(self.configuration)
 
 
 class ExternalDataRequest(models.Model):
@@ -68,6 +78,9 @@ class ExternalDataRequest(models.Model):
 
         self.token = token
         self.save()
+
+    def get_absolute_url(self):
+        return reverse('pdk_external_upload_data', args=[self.token])
 
 
 class ExternalDataRequestFile(models.Model):

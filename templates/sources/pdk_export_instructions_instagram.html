@@ -1,5 +1,62 @@
-	<div class="row">
-		<div class="col-sm">
-			Instagram			
-		</div>
+{% load static from staticfiles %}
+<div class="row">
+	<div class="col-5">
+		<h3>Instagram</h3>
+		
+		<p class="mt-4">This study uses your Instagram data to do X, Y, and Z.</p>
+		
+		<p>Please follow the instructions on the right to request your data.</p>
 	</div>
+	<div class="col-7 pb-5">
+		<h3>Instructions</h3>
+		
+		<h5 class="mt-5">1. Navigate to data request page.</h5>
+		
+		<p>Visit <a href="https://www.instagram.com/download/request/" target="_blank">the data request page</a> to begin the data download process. (You may be prompted to login if needed.)</p>
+
+		<p>Confirm your e-mail and password on to continue.
+
+		<center>
+			<a href="{% static 'pdk_external/assets/instagram/instagram_download_email.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/instagram/instagram_download_email.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Enter E-Mail">
+            </a>
+		</center>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/instagram/instagram_download_password.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/instagram/instagram_download_password.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Enter Password">
+            </a>
+		</center>
+
+		<p>Instagram will confirm that your data download is processing.</p>
+
+
+		<center>
+			<a href="{% static 'pdk_external/assets/instagram/instagram_download_confirm.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/instagram/instagram_download_confirm.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Data Processing Confirmation">
+            </a>
+		</center>
+
+		<h5 class="mt-5">2. Download your data.</h5>
+
+		<p>Once your data is finished processing, Instagram will send you an e-mail with a download link.</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/instagram/instagram_download_message.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/instagram/instagram_download_message.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Download Ready Message">
+            </a>
+		</center>
+
+		<p>Tap the <strong>Download Data</strong> button in the e-mail to go to the download page.</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/instagram/instagram_download_ready.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/instagram/instagram_download_ready.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Download Page">
+            </a>
+		</center>
+
+		<p>On the web page, tap the <strong>Download Data</strong> link to download a ZIP file with your full Instagram history to your local disk.</p>
+
+		<p>Once you have downloaded your file, follow the instructions in the e-mail you receive from us for a link and instructions for to upload your data to the study.</p>
+	</div>
+</div>

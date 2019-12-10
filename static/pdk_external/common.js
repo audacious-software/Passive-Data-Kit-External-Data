@@ -3,7 +3,8 @@ requirejs.config({
     paths: {
 		bootstrap: "lib/bootstrap4/js/bootstrap.bundle.min",
 		jquery: 'lib/jquery/jquery-3.4.1.min',
-		"js-cookie": 'lib/js.cookie-2.2.1.min'
+		"js-cookie": 'lib/js.cookie-2.2.1.min',
+		"ekko-lightbox": 'lib/ekko-lightbox/ekko-lightbox'
     },
     shim: {
         "jquery": {
@@ -29,6 +30,9 @@ requirejs.config({
             deps: ["bootstrap"],
         },
         "bootstrap-timepicker": {
+            deps: ["bootstrap"],
+        },
+        "ekko-lightbox": {
             deps: ["bootstrap"],
         },
         "rickshaw": {
