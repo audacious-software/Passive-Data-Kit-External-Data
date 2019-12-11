@@ -1,0 +1,11 @@
+{{ requester_name }} has requested that you upload information about your usage of several online sites to our data collection tool.
+
+All contributed data is protected with state of the art technologies and best practices.
+
+To get started, visit this link and learn more about how to get started:
+
+{{ request_link }}
+
+Thanks in advance!
+
+- Passive Data Kit data collection team

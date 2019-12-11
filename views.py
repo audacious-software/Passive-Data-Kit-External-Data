@@ -4,16 +4,21 @@ from __future__ import unicode_literals
 
 import json
 import random
+import urllib
 
+from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 
 from passive_data_kit.models import DataSource
 
 from .models import ExternalDataSource, ExternalDataRequest, ExternalDataRequestFile
-
+from .utils import secret_encrypt_content, secret_decrypt_content
 
 def pdk_external_generate_identifier(request): # pylint: disable=invalid-name, unused-argument
     identifier = None
@@ -49,7 +54,7 @@ def pdk_external_request_data_help(request, source): # pylint: disable=too-many-
     return render(request, 'pdk_external_request_data_help.html', context=context)
 
 
-def pdk_external_request_data(request): # pylint: disable=too-many-branches
+def pdk_external_request_data(request, token=None): # pylint: disable=too-many-branches
     context = {}
 
     context['sources'] = ExternalDataSource.objects.all().order_by('priority')
@@ -63,6 +68,14 @@ def pdk_external_request_data(request): # pylint: disable=too-many-branches
 
         if 'email' in request.session:
             del request.session['email']
+
+        if token is not None:
+            cleartext = secret_decrypt_content(urllib.unquote(token))
+
+            tokens = cleartext.split(':')
+
+            request.session['identifier'] = tokens[0]
+            request.session['email'] = tokens[1]
 
         return render(request, 'pdk_external_request_data_start.html', context=context)
 
@@ -115,7 +128,7 @@ def pdk_external_request_data(request): # pylint: disable=too-many-branches
 
         data_request.save()
 
-        return render(request, 'pdk_external_request_data_finished.html', context=context)
+        return redirect('pdk_external_upload_data', token=data_request.token)
 
     return render(request, 'pdk_external_request_data_start.html', context=context)
 
@@ -139,4 +152,34 @@ def pdk_external_upload_data(request, token):
         return render(request, 'pdk_external_request_data_upload.html', context=context)
     else:
         return redirect('pdk_external_request_data')
+
+@staff_member_required
+def pdk_external_request(request):
+    context = {}
+
+    if request.method == 'POST':
+        request.session['identifier'] = request.POST['identifier']
+        request.session['email'] = request.POST['email']
+
+        token = secret_encrypt_content((request.POST['identifier'] + ':' + request.POST['email']).encode('utf-8'))
+
+        mail_context = {
+            'requester_name': request.user.get_full_name(),
+            'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.quote(token)})
+        }
+
+        context['request_email_subject'] = render_to_string('email/pdk_external_request_data_request_email_subject.txt', context=mail_context)
+        context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
+
+        send_mail(context['request_email_subject'], context['request_email'], settings.AUTOMATED_EMAIL_FROM_ADDRESS, [request.POST['email']], fail_silently=False)
+
+    mail_context = {
+        'requester_name': request.user.get_full_name(),
+        'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': 'abc12345'})
+    }
+
+    context['request_email_subject'] = render_to_string('email/pdk_external_request_data_request_email_subject.txt', context=mail_context)
+    context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
+
+    return render(request, 'pdk_external_request_data_request.html', context=context)
     

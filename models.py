@@ -8,6 +8,7 @@ import random
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -28,7 +29,7 @@ class ExternalDataSource(models.Model):
 
     def __unicode__(self):
         return self.name
-        
+
     def fetch_configuration(self):
         # return json.loads(self.configuration)
         return json.loads(self.configuration)
@@ -43,6 +44,46 @@ class ExternalDataRequest(models.Model):
     requested = models.DateTimeField()
 
     sources = models.ManyToManyField(ExternalDataSource, related_name='requests')
+
+    last_emailed = models.DateTimeField(null=True, blank=True)
+    can_email = models.BooleanField(default=True)
+
+    def completed(self):
+        if self.incomplete_sources():
+            return False
+
+        return True
+
+    def incomplete_sources(self):
+        incomplete = []
+
+        for source in self.sources.all():
+            if self.data_files.filter(source=source).count() == 0:
+                incomplete.append(source)
+
+        return incomplete
+
+    def email_reminder(self):
+        if self.can_email is False:
+            return
+
+        if self.completed():
+            return
+
+        if self.last_emailed is None or (self.last_emailed + settings.PDK_EMAIL_REMINDER_DURATION) < timezone.now():
+            mail_context = {
+                'upload_link': settings.SITE_URL + self.get_absolute_url(),
+                'request': self
+            }
+
+            request_email_subject = render_to_string('email/pdk_external_request_data_reminder_email_subject.txt', context=mail_context)
+            request_email = render_to_string('email/pdk_external_request_data_reminder_email.txt', context=mail_context)
+
+            send_mail(request_email_subject, request_email, settings.AUTOMATED_EMAIL_FROM_ADDRESS, [self.email], fail_silently=False)
+
+            self.last_emailed = timezone.now()
+            self.save()
+
 
     def __unicode__(self):
         return self.identifier

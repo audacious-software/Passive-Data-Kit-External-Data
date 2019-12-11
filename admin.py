@@ -12,8 +12,8 @@ class ExternalDataSourceAdmin(admin.OSMGeoAdmin):
 
 @admin.register(ExternalDataRequest)
 class ExternalDataRequestAdmin(admin.OSMGeoAdmin):
-    list_display = ('requested', 'identifier', 'email',)
-    list_filter = ('requested', 'sources',)
+    list_display = ('requested', 'identifier', 'email', 'can_email', 'last_emailed', 'completed',)
+    list_filter = ('requested', 'sources', 'can_email',)
 
 @admin.register(ExternalDataRequestFile)
 class ExternalDataRequestFileAdmin(admin.OSMGeoAdmin):
