@@ -1,5 +1,81 @@
-	<div class="row">
-		<div class="col-sm">
-			Twitter
-		</div>
+{% load static from staticfiles %}
+<div class="row">
+	<div class="col-5">
+		<h3>Twitter</h3>
+		
+		<p class="mt-4">This study uses your Twitter data to do X, Y, and Z.</p>
+		
+		<p>Please follow the instructions on the right to request your data.</p>
 	</div>
+	<div class="col-7 pb-5">
+		<h3>Instructions</h3>
+		
+		<h5 class="mt-5">1. Navigate to data request page.</h5>
+		
+		<p>Visit <a href="https://twitter.com/settings/account" target="_blank">your settings page</a> to begin the data download process. (You may be prompted to login if needed.)</p>
+		
+		<p>
+			In the right-most column, select <strong>Your Twitter data</strong>.
+			Provide your password if prompted.
+		</p>
+		
+
+		<center>
+			<a href="{% static 'pdk_external/assets/twitter/twitter_profile_settings_your_data.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/twitter/twitter_profile_settings_your_data.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Your Twitter data">
+            </a>
+		</center>
+
+		<h5 class="mt-5">2. Request your data.</h5>
+
+		<p>
+			In the bottom of the right-most column, should see buttons allowing you to <strong>Request archive</strong> for your data.
+			Select that button.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/twitter/twitter_profile_settings_request.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/twitter/twitter_profile_settings_request.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Request data">
+            </a>
+		</center>
+		
+		<p>
+			(If you have recently requested your Twitter data, this button may be <strong>Download archive</strong>. 
+			If this is the case, select that button and skip to step 4.)
+		</p>
+		
+		<p>
+			When you request your data, you will see an on-screen notification informing you that Twitter is building your archive.
+		</p>
+		
+		<h5 class="mt-5">3. Read e-mail notification.</h5>
+		
+		<p>
+			After Twitter has finished compiling your data archive, you will receive an e-mail with a link to your data.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/twitter/twitter_email_download.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/twitter/twitter_email_download.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Twitter E-Mail">
+            </a>
+		</center>
+
+		<p>Select the <strong>Download</strong> link to continue.</p>
+
+		<h5 class="mt-5">4. Download your data.</h5>
+		
+		<p>
+			When your data is ready, you may download it.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/twitter/twitter_profile_settings_download_file.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/twitter/twitter_profile_settings_download_file.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="File download">
+            </a>
+		</center>
+
+		<p>Select the <strong>Download Data</strong> button to receive a copy of your Twitter data.</p>
+
+		<p>Once you have downloaded your file, follow the instructions in the e-mail you receive from us for a link and instructions for to upload your data to the study.</p>
+	</div>
+</div>
