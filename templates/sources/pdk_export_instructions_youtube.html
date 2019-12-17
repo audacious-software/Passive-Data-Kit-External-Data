@@ -1,5 +1,106 @@
-	<div class="row">
-		<div class="col-sm">
-			YouTube
-		</div>
+{% load static from staticfiles %}
+<div class="row">
+	<div class="col-5">
+		<h3>YouTube</h3>
+		
+		<p class="mt-4">This study uses your YouTube data to do X, Y, and Z.</p>
+		
+		<p>Please follow the instructions on the right to request your data.</p>
 	</div>
+	<div class="col-7 pb-5">
+		<h3>Instructions</h3>
+		
+		<h5 class="mt-5">1. Navigate to Google Takeout page.</h5>
+		
+		<p>
+			Visit <a href="https://takeout.google.com/settings/takeout" target="_blank">your Google Takeout page</a> to begin the data download process. 
+			(You may be prompted to login if needed.)
+		</p>
+		
+		<p>
+			Scroll down to the <strong>CREATE A NEW ARCHIVE</strong> section. 
+			Select the <strong>Deselect all</strong> link to uncheck all the available data types.
+		</o>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_create.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_create.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Google Takeout">
+            </a>
+		</center>
+		
+		<p>
+			With all items deselected, scroll to the bottom of the page and select <strong>YouTube</strong>.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_youtube.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_youtube.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Google Takeout">
+            </a>
+		</center>
+		
+		<p>
+			Select the <strong>Multiple formats</strong> button beneath the option.
+			In the pop-up window, be sure that <strong>JSON</strong> is selected as the format for <strong>History</strong>.
+			Close the pop-up by selecting the <strong>OK</strong> button at the bottom of the window.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_options.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_options.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Google Takeout">
+            </a>
+		</center>
+
+		<p> 
+			Select the <strong>All YouTube data included</strong> button beneath the option.
+			In the pop-up window, be sure that <strong>videos</strong> is not selected.
+			This will create a much smaller file to download that Google will be able to create quickly.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_content.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_content.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Google Takeout">
+            </a>
+		</center>
+	
+		<p>
+			Select the <strong>Next step</strong> button.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_download_options.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_download_options.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Google Takeout">
+            </a>
+		</center>
+		
+		<p>
+			Keep the default settings and select the <strong>Create archive</strong> button.
+			Google will begin compiling your data file.
+		</p>
+			
+		<h5 class="mt-5">2. Read e-mail notification.</h5>
+		
+		<p>
+			After Google has finished compiling your data archive, you will receive an e-mail with a link to your data.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_download_email.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_download_email.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="YouTube E-Mail">
+            </a>
+		</center>
+
+		<p>Select the <strong>Download archive</strong> link to continue.</p>
+		
+		<h5 class="mt-5">3. Download your data.</h5>
+
+		<p>From the <strong>Manage archives</strong> page, download the newly-created file.</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/youtube/takeout_download.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/youtube/takeout_download.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="YouTube E-Mail">
+            </a>
+		</center>
+
+		<p>Once you have downloaded your file, follow the instructions in the e-mail you receive from us for a link and instructions for to upload your data to the study.</p>
+	</div>
+</div>
