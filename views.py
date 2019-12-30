@@ -153,6 +153,21 @@ def pdk_external_upload_data(request, token):
     else:
         return redirect('pdk_external_request_data')
 
+def pdk_external_email_opt_out(request, token):
+    context = {}
+
+    data_request = ExternalDataRequest.objects.filter(token=token).first()
+
+    if data_request is not None:
+        context['data_request'] = data_request
+
+        if request.method == 'POST':
+            if request.POST['token'] == token:
+                data_request.can_email = False
+                data_request.save()
+
+    return render(request, 'pdk_external_request_data_opt_out_confirm.html', context=context)
+
 @staff_member_required
 def pdk_external_request(request):
     context = {}

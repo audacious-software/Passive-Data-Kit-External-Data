@@ -9,3 +9,9 @@ To get started, visit this link and learn more about how to get started:
 Thanks in advance!
 
 - Passive Data Kit data collection team
+
+
+
+P.S. To cancel these e-mail reminders, tap this link:
+
+     {{ opt_out_link }}

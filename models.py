@@ -73,6 +73,7 @@ class ExternalDataRequest(models.Model):
         if self.last_emailed is None or (self.last_emailed + settings.PDK_EMAIL_REMINDER_DURATION) < timezone.now():
             mail_context = {
                 'upload_link': settings.SITE_URL + self.get_absolute_url(),
+                'opt_out_link': settings.SITE_URL + self.get_opt_out_url(),
                 'request': self
             }
 
@@ -122,6 +123,9 @@ class ExternalDataRequest(models.Model):
 
     def get_absolute_url(self):
         return reverse('pdk_external_upload_data', args=[self.token])
+
+    def get_opt_out_url(self):
+        return reverse('pdk_external_email_opt_out', args=[self.token])
 
 
 class ExternalDataRequestFile(models.Model):
