@@ -1,6 +1,101 @@
-	<div class="row">
-		<div class="col-sm">
-			WhatsApp
-		</div>
+{% load static from staticfiles %}
+<div class="row">
+	<div class="col-5">
+		<h3>WhatsApp</h3>
+		
+		<p class="mt-4">This study uses your WhatsApp data to do X, Y, and Z.</p>
+		
+		<p>Please follow the instructions on the right to request your data.</p>
 	</div>
+	<div class="col-7 pb-5">
+		<h3>Instructions</h3>
+		
+		<h5 class="mt-5">1. Open WhatsApp on your device and navigate to the settings.</h5>
 
+		<center>
+			<a href="{% static 'pdk_external/assets/whatsapp/1_whatsapp_menu.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/1_whatsapp_menu.jpg' %}" class="img-fluid rounded border mb-3" style="width: 25%;" alt="WhatsApp Menu">
+            </a>
+
+
+			<a href="{% static 'pdk_external/assets/whatsapp/2_whatsapp_settings.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/2_whatsapp_settings.jpg' %}" class="img-fluid rounded border mb-3" style="width: 25%;" alt="WhatsApp Settings">
+            </a>
+
+			<a href="{% static 'pdk_external/assets/whatsapp/3_whatsapp_account.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/3_whatsapp_account.jpg' %}" class="img-fluid rounded border mb-3" style="width: 25%;" alt="WhatsApp Account Settings">
+            </a>
+		</center>
+		
+		<p>
+			Navigate to the settings and select the <strong>Account</strong>, then <strong>Request account info</strong>.
+		</p>
+
+		<h5 class="mt-5">2. Request your data from the app.</h5>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/whatsapp/5_whatsapp_request_report.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/5_whatsapp_request_report.jpg' %}" class="img-fluid rounded border mb-3" style="width: 33%;" alt="WhatsApp Request Report">
+            </a>
+
+			<a href="{% static 'pdk_external/assets/whatsapp/6_whatsapp_request_pending.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/6_whatsapp_request_pending.jpg' %}" class="img-fluid rounded border mb-3" style="width: 33%;" alt="WhatsApp Request Pending">
+            </a>
+		</center>
+
+		<p>
+			From the <strong>Request account info</strong> page, tap the option to <strong>Request report</strong>.
+			The option will change to reflect that the report request has been sent to the WhatsApp service.
+		</p>
+		
+		<h5 class="mt-5">3. Download WhatsApp data.</h5>
+		
+		<p>
+			After WhatsApp is finished compiling your usage data, you will receive a notification on your device informing you that the report is ready.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/whatsapp/7_whatsapp_report_available.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/7_whatsapp_report_available.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="WhatsApp Notification">
+            </a>
+		</center>
+
+		<p>Tap the notification to open WhatsApp.</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/whatsapp/8_whatsapp_report_download.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/8_whatsapp_report_download.jpg' %}" class="img-fluid rounded border mb-3" style="width: 33%;" alt="WhatsApp Data Download">
+            </a>
+
+			<a href="{% static 'pdk_external/assets/whatsapp/9_whatsapp_report_export.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/9_whatsapp_report_export.jpg' %}" class="img-fluid rounded border mb-3" style="width: 33%;" alt="WhatsApp Data Export">
+            </a>
+
+		</center>
+		
+		<p>
+			The option on the <strong>Request account info</strong> screen has changed to <strong>Download report</strong> - tap that to begin.
+			The <strong>Download Report</strong> option will change to <strong>Export report</strong> after the data has been downloaded to your device.
+			Tap it again to share your data to your device.
+		</p> 
+
+		<center>
+			<a href="{% static 'pdk_external/assets/whatsapp/10_whatsapp_report_warning.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/10_whatsapp_report_warning.jpg' %}" class="img-fluid rounded border mb-3" style="width: 33%;" alt="WhatsApp Data Warning">
+            </a>
+
+			<a href="{% static 'pdk_external/assets/whatsapp/11_whatsapp_email.jpg' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/whatsapp/11_whatsapp_email.jpg' %}" class="img-fluid rounded border mb-3" style="width: 33%;" alt="WhatsApp Data Share">
+            </a>
+		</center>
+		
+		<p>
+			After WhatsApp warns you to be careful with your data, select an option where WhatsApp can share the data. 
+			In the example below, we e-mail it to ourselves.
+		<p>
+		
+		<p>
+
+		<p>Once you have downloaded your file, follow the instructions in the e-mail you receive from us for a link and instructions for to upload your data to the study.</p>
+	</div>
+</div>

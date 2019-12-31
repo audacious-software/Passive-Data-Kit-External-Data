@@ -11,8 +11,6 @@
 	{% if request.method == 'GET' %}
 		<div class="row">
 			<div class="col">
-			</div>
-			<div class="col">
 				<p>
 					To cancel e-mail reminders, tap the button below.
 				</p>
@@ -24,10 +22,8 @@
 					{% csrf_token %}
 					<input type="hidden" name="token" value="{{ data_request.token }}" />
 				
-					<button type="submit" class="btn btn-primary float-right">Cancel E-Mail Reminders</button>
+					<button type="submit" class="btn btn-primary">Cancel E-Mail Reminders</button>
 				</form>
-			</div>
-			<div class="col">
 			</div>
 		</div>
 	{% else %}
