@@ -140,6 +140,7 @@ def pdk_external_upload_data(request, token):
 
     if data_request is not None:
         context['data_request'] = data_request
+        context['now_time'] = timezone.now()
 
         if request.method == 'POST':
             for source in data_request.sources.all():

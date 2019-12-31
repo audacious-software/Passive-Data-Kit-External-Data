@@ -10,6 +10,8 @@
 		<link href="{% static 'pdk_external/lib/bootstrap4/css/bootstrap.min.css' %}" rel="stylesheet">
 		<link href="{% static 'pdk_external/lib/ekko-lightbox/ekko-lightbox.css' %}" rel="stylesheet">
 
+		{% block 'additional_css_links' %}{% endblock %}
+
 		<!-- Custom styles for this template -->
 		<style>
 			html {

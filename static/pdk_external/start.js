@@ -12,12 +12,8 @@ requirejs(['./common'], function (common) {
 		$("#generate_button").click(function(eventObj) {
 			eventObj.preventDefault();
 			
-			console.log("CLICK");
-			
 			$.get("/data/external/identifier.json", function(response) {
 				const identifier = response["identifier"];
-
-				console.log("ID: " + identifier);
 				
 				if (identifier != undefined) {
 					$("#study-identifier").val(identifier);

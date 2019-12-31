@@ -1,6 +1,7 @@
 # pylint: disable=no-member,line-too-long
 
 import base64
+import getpass
 
 from nacl.public import SealedBox, PrivateKey
 
@@ -15,17 +16,23 @@ class Command(BaseCommand):
         parser.add_argument('--key',
                             type=str,
                             dest='key',
-                            required=True,
+                            required=False,
                             help='Base64-encoded private key corresponding to server\'s public key')
 
         parser.add_argument('--text',
                             type=str,
                             dest='text',
-                            required=True,
+                            required=False,
                             help='Base64-encoded encrypted text')
 
     @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+        if options['key'] is None:
+            options['key'] = getpass.getpass('Enter private key: ')
+
+        if options['text'] is None:
+            options['text'] = raw_input('Enter encrypted text: ')
+
         box = SealedBox(PrivateKey(base64.b64decode(options['key'])))
 
         cleartext = box.decrypt(base64.b64decode(options['text']))
