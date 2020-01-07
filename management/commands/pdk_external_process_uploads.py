@@ -8,6 +8,7 @@ from nacl.public import SealedBox, PublicKey
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from passive_data_kit.decorators import handle_lock
 from ...models import ExternalDataRequestFile
@@ -24,24 +25,27 @@ class Command(BaseCommand):
 
     @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
-        for data_file in ExternalDataRequestFile.objects.filter(processed=None):
+        for data_file in ExternalDataRequestFile.objects.filter(processed=None, skipped=None):
             print 'Processing ' + str(data_file.data_file.path) + '...'
 
-            if data_file.process():
-                if options['skip_encryption'] is False:
-                    original_path = data_file.data_file.path
+            if data_file.process() is False:
+                print 'Unable to process ' + str(data_file.data_file.path) + '.'
 
-                    box = SealedBox(PublicKey(base64.b64decode(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY)))
+                data_file.skipped = timezone.now()
+                data_file.save()
 
-                    with open(data_file.data_file.path, 'rb') as original_file:
-                        encrypted_str = box.encrypt(original_file.read())
+            if options['skip_encryption'] is False:
+                original_path = data_file.data_file.path
 
-                        filename = os.path.basename(data_file.data_file.path) + '.encrypted'
+                box = SealedBox(PublicKey(base64.b64decode(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY)))
 
-                        encrypted_file = ContentFile(encrypted_str)
+                with open(data_file.data_file.path, 'rb') as original_file:
+                    encrypted_str = box.encrypt(original_file.read())
 
-                        data_file.data_file.save(filename, encrypted_file)
+                    filename = os.path.basename(data_file.data_file.path) + '.encrypted'
 
-                    os.remove(original_path)
-            else:
-                print 'Unable to process ' + str(data_file.data_file.path) + '...'
+                    encrypted_file = ContentFile(encrypted_str)
+
+                    data_file.data_file.save(filename, encrypted_file)
+
+                os.remove(original_path)

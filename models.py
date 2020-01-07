@@ -135,7 +135,9 @@ class ExternalDataRequestFile(models.Model):
     data_file = models.FileField(upload_to='pdk_external_files/')
 
     uploaded = models.DateTimeField()
+
     processed = models.DateTimeField(null=True, blank=True)
+    skipped = models.DateTimeField(null=True, blank=True)
 
     def process(self):
         if self.processed is not None:
