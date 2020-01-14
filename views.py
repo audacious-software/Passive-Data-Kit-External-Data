@@ -117,6 +117,11 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
         data_request = ExternalDataRequest(email=request.session['email'], identifier=request.session['identifier'], requested=timezone.now())
 
+        try:
+            data_request.can_email = settings.PDK_EXTERNAL_CAN_EMAIL_DEFAULT
+        except AttributeError:
+            pass
+
         data_request.save()
 
         data_request.generate_content_token()
@@ -198,4 +203,3 @@ def pdk_external_request(request):
     context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
 
     return render(request, 'pdk_external_request_data_request.html', context=context)
-    
