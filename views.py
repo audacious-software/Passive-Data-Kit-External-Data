@@ -184,15 +184,23 @@ def pdk_external_request(request):
 
         token = secret_encrypt_content((request.POST['identifier'] + ':' + request.POST['email']).encode('utf-8'))
 
-        mail_context = {
-            'requester_name': request.user.get_full_name(),
-            'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.quote(token)})
-        }
+        can_send = True
 
-        context['request_email_subject'] = render_to_string('email/pdk_external_request_data_request_email_subject.txt', context=mail_context)
-        context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
+        try:
+            can_send = settings.PDK_EXTERNAL_CAN_EMAIL_DEFAULT
+        except AttributeError:
+            pass
 
-        send_mail(context['request_email_subject'], context['request_email'], settings.AUTOMATED_EMAIL_FROM_ADDRESS, [request.POST['email']], fail_silently=False)
+        if can_send:
+            mail_context = {
+                'requester_name': request.user.get_full_name(),
+                'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.quote(token)})
+            }
+
+            context['request_email_subject'] = render_to_string('email/pdk_external_request_data_request_email_subject.txt', context=mail_context)
+            context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
+
+            send_mail(context['request_email_subject'], context['request_email'], settings.AUTOMATED_EMAIL_FROM_ADDRESS, [request.POST['email']], fail_silently=False)
 
     mail_context = {
         'requester_name': request.user.get_full_name(),
