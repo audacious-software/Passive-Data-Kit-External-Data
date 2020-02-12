@@ -42,9 +42,12 @@ def process_ads_served(request_identifier, ads_served):
             'interacted': item['interacted'],
         }
 
-        created = arrow.get(item['serve_time']).datetime
+        try:
+            created = arrow.get(item['serve_time']).datetime
 
-        DataPoint.objects.create_data_point('pdk-external-tumblr-unfollow', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+        except arrow.ParserError:
+            print '[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".'
 
 def process_active_times(request_identifier, active_times):
     for item in active_times:
