@@ -1,0 +1,57 @@
+{% load static from staticfiles %}
+<div class="row">
+	<div class="col-5">
+		<h3>Tumblr</h3>
+		
+		<p class="mt-4">This study uses your LinkedIn data to do X, Y, and Z.</p>
+		
+		<p>Please follow the instructions on the right to request your data.</p>
+	</div>
+	<div class="col-7 pb-5">
+		<h3>Instructions</h3>
+		
+		<h5 class="mt-5">1. Request data.</h5>
+		
+		<p>
+			Navigate to <a href="https://www.linkedin.com/psettings/member-data" target="_blank">your LinkedIn settings</a>.
+			Scroll down to the <strong>Getting a copy of your data</strong> section.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/linkedin/linkedin_export.png' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/linkedin/linkedin_export.png' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="LinkedIn Export">
+            </a>
+		</center>
+
+		<p>Verify that the <strong>Download larger data archive</strong> option is selected and tap the <strong>Request archive</strong> button.
+		
+		<p>
+			LinkedIn will begin compiling your data and send you an e-mail when that process is complete.
+		</p>
+		
+		<h5 class="mt-5">2. Read e-mail notification.</h5>
+		
+		<p>
+			After LinkedIn has finished compiling your data archive, you will receive an e-mail with a link to your data.
+		</p>
+
+		<center>
+			<a href="{% static 'pdk_external/assets/linkedin/linkedin_email.png' %}" data-toggle="lightbox">
+                <img src="{% static 'pdk_external/assets/linkedin/linkedin_email.png' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="LinkedIn E-Mail">
+            </a>
+		</center>
+
+		<h5 class="mt-5">3. Download your data.</h5>
+		
+		<p>
+			You can return to <a href="https://www.linkedin.com/psettings/member-data" target="_blank">your LinkedIn settings</a> by tapping the link in the e-mail.
+		</p>
+		
+		<p>
+			The form that you used to request your data will be faded out and the <strong>Request archive</strong> button will have changed to <strong>Download archive</strong>.
+			Tap the button to download a your data.
+		</p>
+
+		<p>Once you have downloaded your file, follow the instructions in the e-mail you receive from us for a link and instructions for to upload your data to the study.</p>
+	</div>
+</div>
