@@ -158,7 +158,7 @@ class ExternalDataRequestFile(models.Model):
                     pass
                 except AttributeError:
                     pass
-                except:
+                except: #pylint: disable=bare-except
                     traceback.print_exc()
                     file_processed = False
 
