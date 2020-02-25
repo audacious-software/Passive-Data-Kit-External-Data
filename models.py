@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import importlib
 import json
 import random
+import traceback
 
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -157,6 +158,9 @@ class ExternalDataRequestFile(models.Model):
                     pass
                 except AttributeError:
                     pass
+                except:
+                    traceback.print_exc()
+                    file_processed = False
 
         if file_processed:
             self.processed = timezone.now()
