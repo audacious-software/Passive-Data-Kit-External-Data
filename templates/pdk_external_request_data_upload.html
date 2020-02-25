@@ -29,7 +29,7 @@
             </p>
         </div>
         <div class="col-sm">
-            <form method="POST" action="{% url 'pdk_external_upload_data' data_request.token %}" enctype="multipart/form-data">
+            <form method="POST" action="{% url 'pdk_external_upload_data' data_request.token %}" enctype="multipart/form-data" id="upload-form">
                 {% csrf_token %}
                 
                 {% for file in data_request.request_files %}

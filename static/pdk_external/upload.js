@@ -8,5 +8,27 @@ requirejs(['./common'], function (common) {
 				}
 			}
 		});
+
+		$('#upload-form').submit(function(e) {
+			var message = null;
+			
+			$('input[type=file]').each(function() {
+				var filename = $(this).val();
+				
+				if (filename != "" && filename.toLowerCase().endsWith(".zip") == false) {
+					message = "Please verify that you have only selected ZIP files for upload.";
+				};
+			});
+
+			if (message != null) {
+				e.preventDefault();
+
+				alert(message);
+
+				return false;
+			}
+
+			return true;
+		});
 	}); 
 });
