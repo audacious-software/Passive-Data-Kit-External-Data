@@ -150,10 +150,11 @@ def pdk_external_upload_data(request, token):
         if request.method == 'POST':
             for source in data_request.sources.all():
                 if source.identifier in request.FILES:
-                    request_file = ExternalDataRequestFile(request=data_request, source=source, uploaded=timezone.now())
-                    request_file.data_file = request.FILES[source.identifier]
+                    for file_item in request.FILES.getlist(source.identifier):
+                        request_file = ExternalDataRequestFile(request=data_request, source=source, uploaded=timezone.now())
+                        request_file.data_file = file_item
 
-                    request_file.save()
+                        request_file.save()
 
         return render(request, 'pdk_external_request_data_upload.html', context=context)
     else:

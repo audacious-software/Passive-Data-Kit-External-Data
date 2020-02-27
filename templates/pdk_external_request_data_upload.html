@@ -53,13 +53,13 @@
 							
 									{% else %}
 										<p class="card-text">
-											<input type="file" name="{{ file.identifier }}" />
+											<input type="file" name="{{ file.identifier }}" multiple />
 										</p>
 									{% endif %}
 								{% endwith %}
 							{% else %}
 								<p class="card-text">
-									<input type="file" name="{{ file.identifier }}" />
+									<input type="file" name="{{ file.identifier }}" multiple />
 								</p>
 							{% endif %}
 
