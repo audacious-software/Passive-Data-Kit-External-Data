@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import base64
 import json
 import random
 import urllib
@@ -69,6 +70,9 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
         if 'email' in request.session:
             del request.session['email']
 
+        if 'extras' in request.session:
+            del request.session['extras']
+
         if token is not None:
             cleartext = secret_decrypt_content(urllib.unquote(token))
 
@@ -76,6 +80,9 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
             request.session['identifier'] = tokens[0]
             request.session['email'] = tokens[1]
+
+            if len(tokens) > 2:
+                request.session['extras'] = base64.b64decode(tokens[2])
 
         return render(request, 'pdk_external_request_data_start.html', context=context)
 
@@ -116,6 +123,9 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
                     return render(request, 'pdk_external_request_data_source.html', context=context)
 
         data_request = ExternalDataRequest(email=request.session['email'], identifier=request.session['identifier'], requested=timezone.now())
+
+        if 'extras' in request.session:
+            data_request.extras = request.session['extras']
 
         try:
             data_request.can_email = settings.PDK_EXTERNAL_CAN_EMAIL_DEFAULT
@@ -183,7 +193,14 @@ def pdk_external_request(request):
         request.session['identifier'] = request.POST['identifier']
         request.session['email'] = request.POST['email']
 
-        token = secret_encrypt_content((request.POST['identifier'] + ':' + request.POST['email']).encode('utf-8'))
+        extras = dict(request.POST)
+        del extras['identifier']
+        del extras['email']
+        del extras['csrfmiddlewaretoken']
+
+        b64_extras = base64.b64encode(json.dumps(extras))
+
+        token = secret_encrypt_content((request.POST['identifier'] + ':' + request.POST['email'] + ':' + b64_extras).encode('utf-8'))
 
         can_send = True
 
@@ -195,7 +212,8 @@ def pdk_external_request(request):
         if can_send:
             mail_context = {
                 'requester_name': request.user.get_full_name(),
-                'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.quote(token)})
+                'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.quote(token)}),
+                'request_extras': extras
             }
 
             context['request_email_subject'] = render_to_string('email/pdk_external_request_data_request_email_subject.txt', context=mail_context)

@@ -46,6 +46,8 @@ class ExternalDataRequest(models.Model):
 
     sources = models.ManyToManyField(ExternalDataSource, related_name='requests')
 
+    extras = models.TextField(max_length=1048576, default='{}')
+
     last_emailed = models.DateTimeField(null=True, blank=True)
     can_email = models.BooleanField(default=True)
 
