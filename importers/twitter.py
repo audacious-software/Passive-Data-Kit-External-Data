@@ -36,16 +36,24 @@ def process_tweets(request_identifier, tweets_raw):
     tweets = json.loads(tweets_raw)
 
     for tweet in tweets:
-        tweet['pdk_hashed_id'] = hash_content(tweet['id'])
-        tweet['pdk_encrypted_id'] = encrypt_content(tweet['id'].encode('utf-8'))
+        if 'tweet' in tweet:
+            tweet = tweet['tweet']
 
-        del tweet['id']
-        del tweet['id_str']
+        if 'id' in tweet:
+            tweet['pdk_hashed_id'] = hash_content(tweet['id'])
+            tweet['pdk_encrypted_id'] = encrypt_content(tweet['id'].encode('utf-8'))
+            del tweet['id']
 
-        tweet['pdk_encrypted_full_text'] = encrypt_content(tweet['full_text'].encode('utf-8'))
-        tweet['pdk_length_full_text'] = len(tweet['full_text'])
+        if 'id_str' in tweet:
+            tweet['pdk_hashed_id_str'] = hash_content(tweet['id_str'])
+            tweet['pdk_encrypted_id_str'] = encrypt_content(tweet['id_str'].encode('utf-8'))
+            del tweet['id_str']
 
-        del tweet['full_text']
+        if 'full_text' in tweet:
+            tweet['pdk_encrypted_full_text'] = encrypt_content(tweet['full_text'].encode('utf-8'))
+            tweet['pdk_length_full_text'] = len(tweet['full_text'])
+
+            del tweet['full_text']
 
         if 'entities' in tweet:
             entities_str = json.dumps(tweet['entities'], indent=2)

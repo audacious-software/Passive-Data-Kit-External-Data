@@ -56,6 +56,9 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
         if 'wall_posts_sent_to_you' in posts and 'activity_log_data' in posts['wall_posts_sent_to_you']:
             posts = posts['wall_posts_sent_to_you']['activity_log_data']
 
+    if 'timestamp' in posts:
+        posts = [posts]
+
     for post in posts: # pylint: disable=too-many-nested-blocks
         created = arrow.get(post['timestamp']).datetime
 

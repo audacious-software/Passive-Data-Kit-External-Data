@@ -16,7 +16,7 @@ def process_chat_history(request_identifier, json_string):
 
     for message in chat_history['Received Chat History']:
         pdk_message = {
-            'pdk_hashed_from': hash_content(message['From']),
+            'pdk_hashed_from': hash_content(message['From'].encode('utf-8')),
             'pdk_encrypted_from': encrypt_content(message['From'].encode('utf-8')),
             'pdk_length_from': len(message['From']),
             'media_type': message['Media Type'],
@@ -29,7 +29,7 @@ def process_chat_history(request_identifier, json_string):
 
     for message in chat_history['Sent Chat History']:
         pdk_message = {
-            'pdk_hashed_to': hash_content(message['To']),
+            'pdk_hashed_to': hash_content(message['To'].encode('utf-8')),
             'pdk_encrypted_to': encrypt_content(message['To'].encode('utf-8')),
             'pdk_length_to': len(message['To']),
             'media_type': message['Media Type'],
@@ -46,7 +46,7 @@ def process_memories_history(request_identifier, json_string):
 
     for media in memories_history['Saved Media']:
         pdk_media = {
-            'pdk_hashed_download_link': hash_content(media['Download Link']),
+            'pdk_hashed_download_link': hash_content(media['Download Link'].encode('utf-8')),
             'pdk_encrypted_download_link': encrypt_content(media['Download Link'].encode('utf-8')),
             'pdk_length_download_link': len(media['Download Link']),
             'media_type': media['Media Type'],
@@ -63,7 +63,7 @@ def process_shared_story(request_identifier, json_string):
 
     for story in shared_story['Shared Story']:
         pdk_story = {
-            'pdk_hashed_story_id': hash_content(story['Story Id']),
+            'pdk_hashed_story_id': hash_content(story['Story Id'].encode('utf-8')),
             'pdk_encrypted_story_id': encrypt_content(story['Story Id'].encode('utf-8')),
             'pdk_length_story_id': len(story['Story Id']),
             'status': story['Status'],
@@ -91,7 +91,7 @@ def process_snap_history(request_identifier, json_string):
 
     for snap in snap_history['Received Snap History']:
         pdk_snap = {
-            'pdk_hashed_from': hash_content(snap['From']),
+            'pdk_hashed_from': hash_content(snap['From'].encode('utf-8')),
             'pdk_encrypted_from': encrypt_content(snap['From'].encode('utf-8')),
             'pdk_length_from': len(snap['From']),
             'create_time': snap['Created'],
@@ -104,7 +104,7 @@ def process_snap_history(request_identifier, json_string):
 
     for snap in snap_history['Sent Snap History']:
         pdk_snap = {
-            'pdk_hashed_to': hash_content(snap['To']),
+            'pdk_hashed_to': hash_content(snap['To'].encode('utf-8')),
             'pdk_encrypted_to': encrypt_content(snap['To'].encode('utf-8')),
             'pdk_length_to': len(snap['To']),
             'create_time': snap['Created'],
@@ -122,10 +122,10 @@ def process_support_notes(request_identifier, json_string):
     for report_type in support_notes.keys():
         for note in support_notes[report_type]:
             pdk_note = {
-                'pdk_hashed_subject': hash_content(note['Subject']),
+                'pdk_hashed_subject': hash_content(note['Subject'].encode('utf-8')),
                 'pdk_encrypted_subject': encrypt_content(note['Subject'].encode('utf-8')),
                 'pdk_length_subject': len(note['Subject']),
-                'pdk_hashed_message': hash_content(note['Message']),
+                'pdk_hashed_message': hash_content(note['Message'].encode('utf-8')),
                 'pdk_encrypted_message': encrypt_content(note['Message'].encode('utf-8')),
                 'pdk_length_message': len(note['Message']),
                 'create_time': note['Create Time'],
