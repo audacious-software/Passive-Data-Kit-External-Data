@@ -55,7 +55,7 @@ def pdk_external_request_data_help(request, source): # pylint: disable=too-many-
     return render(request, 'pdk_external_request_data_help.html', context=context)
 
 
-def pdk_external_request_data(request, token=None): # pylint: disable=too-many-branches
+def pdk_external_request_data(request, token=None): # pylint: disable=too-many-branches, too-many-statements
     context = {}
 
     context['sources'] = ExternalDataSource.objects.all().order_by('priority')
@@ -122,7 +122,12 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
                     return render(request, 'pdk_external_request_data_source.html', context=context)
 
-        data_request = ExternalDataRequest(email=request.session['email'], identifier=request.session['identifier'], requested=timezone.now())
+        data_request = ExternalDataRequest.objects.filter(identifier=request.session['identifier']).first()
+
+        if data_request is None:
+            data_request = ExternalDataRequest(identifier=request.session['identifier'], requested=timezone.now())
+
+        data_request.email = request.session['email']
 
         if 'extras' in request.session:
             data_request.extras = request.session['extras']

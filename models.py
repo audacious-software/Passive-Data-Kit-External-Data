@@ -51,6 +51,26 @@ class ExternalDataRequest(models.Model):
     last_emailed = models.DateTimeField(null=True, blank=True)
     can_email = models.BooleanField(default=True)
 
+    def merge(self, request):
+        if request.pk > self.pk:
+            self.email = request.email
+            self.token = request.token
+            self.extras = request.extras
+
+            self.can_email = request.can_email
+
+            if self.last_emailed is None or self.last_emailed < request.last_emailed:
+                self.last_emailed = request.last_emailed
+
+            self.save()
+
+        for source in request.sources.all():
+            self.sources.add(source)
+
+        for request_file in request.data_files.all():
+            request_file.request = self
+            request_file.save()
+
     def completed(self):
         if self.incomplete_sources():
             return False
@@ -87,7 +107,6 @@ class ExternalDataRequest(models.Model):
 
             self.last_emailed = timezone.now()
             self.save()
-
 
     def __unicode__(self):
         return self.identifier
