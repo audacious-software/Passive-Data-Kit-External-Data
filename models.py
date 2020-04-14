@@ -59,7 +59,7 @@ class ExternalDataRequest(models.Model):
 
             self.can_email = request.can_email
 
-            if self.last_emailed is None or self.last_emailed < request.last_emailed:
+            if self.last_emailed is None or (request.last_emailed is not None and self.last_emailed < request.last_emailed):
                 self.last_emailed = request.last_emailed
 
             self.save()
