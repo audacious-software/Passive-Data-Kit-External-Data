@@ -181,3 +181,41 @@ def import_data(request_identifier, path):
             return False
 
     return True
+
+def external_data_metadata(generator_identifier, point):
+    if generator_identifier.startswith('pdk-external-snapchat') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'Snapchat'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-snapchat-chat-received':
+        metadata['event'] = 'Direct Message'
+        metadata['direction'] = 'Incoming'
+
+        properties = point.fetch_properties()
+
+        metadata['media_type'] = properties['media_type']
+    elif generator_identifier == 'pdk-external-snapchat-chat-sent':
+        metadata['event'] = 'Direct Message'
+        metadata['direction'] = 'Outgoing'
+
+        properties = point.fetch_properties()
+
+        metadata['media_type'] = properties['media_type']
+    elif generator_identifier == 'pdk-external-snapchat-snap-received':
+        metadata['event'] = 'Upload Post'
+        metadata['direction'] = 'Incoming'
+
+        properties = point.fetch_properties()
+        metadata['media_type'] = properties['media_type']
+
+    elif generator_identifier == 'pdk-external-snapchat-snap-sent':
+        metadata['event'] = 'Upload Post'
+        metadata['direction'] = 'Outgoing'
+
+        properties = point.fetch_properties()
+        metadata['media_type'] = properties['media_type']
+
+    return metadata

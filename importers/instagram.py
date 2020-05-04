@@ -86,3 +86,26 @@ def import_data(request_identifier, path):
             return False
 
     return True
+
+def external_data_metadata(generator_identifier, point): # pylint: disable=unused-argument
+    if generator_identifier.startswith('pdk-external-instagram') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'Instagram'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-instagram-comment':
+        metadata['event'] = 'Added Comment'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Text'
+    elif generator_identifier == 'pdk-external-instagram-photo':
+        metadata['event'] = 'Photo Upload'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Image'
+    elif generator_identifier == 'pdk-external-instagram-video':
+        metadata['event'] = 'Video Upload'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Video'
+
+    return metadata

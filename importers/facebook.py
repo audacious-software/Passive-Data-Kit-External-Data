@@ -167,3 +167,34 @@ def import_data(request_identifier, path):
             return False
 
     return True
+
+
+def external_data_metadata(generator_identifier, point):
+    if generator_identifier.startswith('pdk-external-facebook') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'Facebook'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-facebook-comment':
+        metadata['event'] = 'Upload Comment'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Text'
+    elif generator_identifier == 'pdk-external-facebook-post':
+        metadata['event'] = 'Upload Post'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Text'
+
+        properties = point.fetch_properties()
+
+        if 'pdk_encrypted_url' in properties:
+            metadata['media_type'] = 'Link'
+
+        if 'pdk_encrypted_media_metadata' in properties:
+            metadata['media_type'] = 'Multimedia'
+
+        if 'pdk_encrypted_place' in properties:
+            metadata['media_type'] = 'Location'
+
+    return metadata

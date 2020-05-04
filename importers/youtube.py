@@ -107,3 +107,30 @@ def import_data(request_identifier, path):
             return False
 
     return True
+
+def external_data_metadata(generator_identifier, point): # pylint: disable=unused-argument
+    if generator_identifier.startswith('pdk-external-youtube') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'YouTube'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-youtube-watch':
+        metadata['event'] = 'Watched Video'
+        metadata['direction'] = 'Incoming'
+        metadata['media_type'] = 'Video'
+    elif generator_identifier == 'pdk-external-youtube-search':
+        metadata['event'] = 'Search'
+        metadata['direction'] = 'Incoming'
+        metadata['media_type'] = 'Search'
+    elif generator_identifier == 'pdk-external-youtube-upload':
+        metadata['event'] = 'Video Upload'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Video'
+    elif generator_identifier == 'pdk-external-youtube-like':
+        metadata['event'] = 'Positive Reaction'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Reaction'
+
+    return metadata

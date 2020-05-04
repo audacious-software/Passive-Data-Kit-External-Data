@@ -121,3 +121,33 @@ def import_data(request_identifier, path):
             return False
 
     return True
+
+def external_data_metadata(generator_identifier, point):
+    if generator_identifier.startswith('pdk-external-twitter') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'Twitter'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-twitter-like':
+        metadata['event'] = 'Positive Reaction'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Reaction'
+    elif generator_identifier == 'pdk-external-twitter-tweet':
+        metadata['event'] = 'Post Upload'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Text'
+
+        properties = point.fetch_properties()
+
+        if 'pdk_encrypted_urls' in properties:
+            metadata['media_type'] = 'Link'
+        elif 'pdk_encrypted_entities' in properties:
+            metadata['media_type'] = 'Image / Video'
+    elif generator_identifier == 'pdk-external-twitter-direct-message':
+        metadata['event'] = 'Direct Message'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Text'
+
+    return metadata

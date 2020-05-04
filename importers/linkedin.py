@@ -198,7 +198,7 @@ def process_recommendations_given(request_identifier, recommendations_raw):
         if row[0] != 'First Name':
             recommendation_point = {}
 
-            created = arrow.get(row[5], 'M/DD/YY, h:mm A').to(settings.TIME_ZONE).datetime
+            created = arrow.get(row[5], 'M/D/YY, h:mm A').to(settings.TIME_ZONE).datetime
 
             recommendation_point['pdk_encrypted_first_name'] = encrypt_content(row[0])
             recommendation_point['pdk_hashed_first_name'] = hash_content(row[0])
@@ -229,7 +229,7 @@ def process_recommendations_received(request_identifier, recommendations_raw): #
         if row[0] != 'First Name':
             recommendation_point = {}
 
-            created = arrow.get(row[5], 'M/DD/YY, h:mm A').to(settings.TIME_ZONE).datetime
+            created = arrow.get(row[5], 'M/D/YY, h:mm A').to(settings.TIME_ZONE).datetime
 
             recommendation_point['pdk_encrypted_first_name'] = encrypt_content(row[0])
             recommendation_point['pdk_hashed_first_name'] = hash_content(row[0])
@@ -260,7 +260,7 @@ def process_registration(request_identifier, registration_raw):
         if row[0] != 'Registered At':
             registration_point = {}
 
-            created = arrow.get(row[0], 'M/DD/YY, h:mm A').to(settings.TIME_ZONE).datetime
+            created = arrow.get(row[0], 'M/D/YY, h:mm A').to(settings.TIME_ZONE).datetime
 
             if row[1]:
                 registration_point['pdk_encrypted_ip_address'] = encrypt_content(row[1])
@@ -305,3 +305,49 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches
             return False
 
     return True
+
+
+def external_data_metadata(generator_identifier, point):
+    if generator_identifier.startswith('pdk-external-linkedin') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'LinkedIn'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-linkedin-follow':
+        metadata['event'] = 'Follow'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Relationship'
+    elif generator_identifier == 'pdk-external-linkedin-connection':
+        metadata['event'] = 'Connection'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Relationship'
+    elif generator_identifier == 'pdk-external-linkedin-membership':
+        metadata['event'] = 'Joined Group'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Relationship'
+    elif generator_identifier == 'pdk-external-linkedin-invitation':
+        metadata['event'] = 'Invitation'
+
+        properties = point.fetch_properties()
+
+        metadata['direction'] = properties['pdk_direction']
+        metadata['media_type'] = 'Relationship'
+    elif generator_identifier == 'pdk-external-linkedin-message':
+        metadata['event'] = 'Direct Message'
+
+        properties = point.fetch_properties()
+
+        metadata['direction'] = properties['pdk_direction']
+        metadata['media_type'] = 'Text'
+    elif generator_identifier == 'pdk-external-linkedin-recommendation-given':
+        metadata['event'] = 'Recommendation'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Relationship'
+    elif generator_identifier == 'pdk-external-linkedin-recommendation-received':
+        metadata['event'] = 'Recommendation'
+        metadata['direction'] = 'Incoming'
+        metadata['media_type'] = 'Relationship'
+
+    return metadata

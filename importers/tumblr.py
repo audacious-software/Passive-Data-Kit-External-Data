@@ -133,3 +133,22 @@ def import_data(request_identifier, path):
             return False
 
     return True
+
+def external_data_metadata(generator_identifier, point): # pylint: disable=unused-argument
+    if generator_identifier.startswith('pdk-external-tumblr') is False:
+        return None
+
+    metadata = {}
+    metadata['service'] = 'Tumblr'
+    metadata['event'] = generator_identifier
+
+    if generator_identifier == 'pdk-external-tumblr-unfollow':
+        metadata['event'] = 'Unfollow'
+        metadata['direction'] = 'Outgoing'
+        metadata['media_type'] = 'Relationship'
+    elif generator_identifier == 'pdk-external-tumblr-ads-served':
+        metadata['event'] = 'Viewed Ad'
+        metadata['direction'] = 'Incoming'
+        metadata['media_type'] = 'Advertisement'
+
+    return metadata
