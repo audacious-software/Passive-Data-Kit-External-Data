@@ -15,6 +15,9 @@ from ..utils import hash_content, encrypt_content
 def process_comments(request_identifier, comments_raw):
     comments = json.loads(comments_raw)
 
+    if isinstance(comments, dict) is False:
+        return
+
     for key in comments:
         comment_list = comments[key]
 

@@ -30,10 +30,11 @@ def process_search_history(request_identifier, file_json):
 
         del search['title']
 
-        search['pdk_encrypted_titleUrl'] = encrypt_content(search['titleUrl'].encode('utf-8')),
-        search['pdk_length_titleUrl'] = len(search['titleUrl'])
+        if 'titleUrl' in search:
+            search['pdk_encrypted_titleUrl'] = encrypt_content(search['titleUrl'].encode('utf-8')),
+            search['pdk_length_titleUrl'] = len(search['titleUrl'])
 
-        del search['titleUrl']
+            del search['titleUrl']
 
         DataPoint.objects.create_data_point('pdk-external-youtube-search', request_identifier, search, user_agent='Passive Data Kit External Importer', created=created)
 
