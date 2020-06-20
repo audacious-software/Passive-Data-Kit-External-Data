@@ -82,11 +82,40 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
             request.session['email'] = tokens[1]
 
             if len(tokens) > 2:
-                request.session['extras'] = base64.b64decode(tokens[2])
+                request.session['extras'] = json.loads(base64.b64decode(tokens[2]))
 
         return render(request, 'pdk_external_request_data_start.html', context=context)
 
     elif request.method == 'POST':
+        data_request = None
+        
+        if 'identifier' in request.session:
+            data_request = ExternalDataRequest.objects.filter(identifier=request.session['identifier']).first()
+        
+        if data_request is None:
+            data_request = ExternalDataRequest(identifier=request.POST.get('identifier', 'missing-id'), requested=timezone.now())
+
+        if 'extras' in request.session:
+            for key in request.session['extras']:
+                if key in request.POST:
+                    request.session['extras'][key] = request.POST[key]
+        else:
+            request.session['extras'] = {}
+
+            for key in request.POST:
+                request.session['extras'][key] = request.POST[key]
+                
+            del request.session['extras']['step']
+            del request.session['extras']['csrfmiddlewaretoken']
+            del request.session['extras']['identifier']
+            del request.session['extras']['email']
+
+            for source in context['sources']:
+                if source.identifier in request.session['extras']:
+                    del request.session['extras'][source.identifier]
+
+        data_request.extras = json.dumps(request.session['extras'], indent=2)
+
         if ('pending_sites' in request.session) is False:
             request.session['identifier'] = request.POST['identifier']
             request.session['email'] = request.POST['email']
@@ -122,15 +151,10 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
                     return render(request, 'pdk_external_request_data_source.html', context=context)
 
-        data_request = ExternalDataRequest.objects.filter(identifier=request.session['identifier']).first()
-
         if data_request is None:
             data_request = ExternalDataRequest(identifier=request.session['identifier'], requested=timezone.now())
 
         data_request.email = request.session['email']
-
-        if 'extras' in request.session:
-            data_request.extras = request.session['extras']
 
         try:
             data_request.can_email = settings.PDK_EXTERNAL_CAN_EMAIL_DEFAULT
