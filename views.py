@@ -88,10 +88,10 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
     elif request.method == 'POST':
         data_request = None
-        
+
         if 'identifier' in request.session:
             data_request = ExternalDataRequest.objects.filter(identifier=request.session['identifier']).first()
-        
+
         if data_request is None:
             data_request = ExternalDataRequest(identifier=request.POST.get('identifier', 'missing-id'), requested=timezone.now())
 
@@ -104,7 +104,7 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
             for key in request.POST:
                 request.session['extras'][key] = request.POST[key]
-                
+
             del request.session['extras']['step']
             del request.session['extras']['csrfmiddlewaretoken']
             del request.session['extras']['identifier']
