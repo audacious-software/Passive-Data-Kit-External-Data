@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 
 from passive_data_kit.models import DataSourceReference, DataPoint
 
-from .models import ExternalDataSource, ExternalDataRequest
+from .models import ExternalDataSource # , ExternalDataRequest
 
 
 CUSTOM_GENERATORS = (
@@ -196,16 +196,16 @@ def external_data_metadata(point):
                     pass
 
     return metadata
-    
-def pdk_custom_source_header(source):
+
+def pdk_custom_source_header(source): # pylint: disable=unused-argument
     context = {}
-    
-    data_request = ExternalDataRequest.objects.filter(identifier=source).first()
-    
-    if data_request is not None:
-    	for external_source in data_request.sources.all():
-    		engagement_identifier = 'pdk-external-engagement-' + external_source.identifier
-    
+
+#    data_request = ExternalDataRequest.objects.filter(identifier=source).first()
+
+#    if data_request is not None:
+#        for external_source in data_request.sources.all():
+#            engagement_identifier = 'pdk-external-engagement-' + external_source.identifier
+
     return render_to_string('pdk_external_source_header.html', context)
 
 def compile_visualization(identifier, points, folder, source=None):

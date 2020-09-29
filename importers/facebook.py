@@ -360,7 +360,7 @@ def process_page_reactions(request_identifier, reactions_raw):
             reaction['pdk_length_name'] = len(reaction['name'])
 
             del reaction['name']
-            
+
         reaction['content_type'] = 'page'
         reaction['reaction'] = 'like'
 
@@ -377,7 +377,7 @@ def process_post_comment_reactions(request_identifier, reactions_raw):
         if 'title' in reaction:
             reaction['pdk_encrypted_title'] = encrypt_content(reaction['title'].encode('utf-8'))
             reaction['pdk_length_title'] = len(reaction['title'])
-            
+
             if '\'s post' in reaction['title']:
                 reaction['content_type'] = 'post'
             elif '\'s comment' in reaction['title']:
@@ -386,16 +386,16 @@ def process_post_comment_reactions(request_identifier, reactions_raw):
                 reaction['content_type'] = 'unknown'
 
             del reaction['title']
-            
+
         if 'data' in reaction:
             for data_item in reaction['data']:
                 if 'reaction' in data_item:
                     data_item['reaction']['reaction'] = data_item['reaction']['reaction'].lower()
-            
+
                     if 'actor' in data_item['reaction']:
                         data_item['reaction']['pdk_encrypted_actor'] = encrypt_content(data_item['reaction']['actor'].encode('utf-8'))
                         data_item['reaction']['pdk_length_actor'] = len(data_item['reaction']['actor'])
-                
+
                         del data_item['reaction']['actor']
 
             DataPoint.objects.create_data_point('pdk-external-facebook-reaction', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created)

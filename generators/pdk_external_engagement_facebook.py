@@ -31,26 +31,26 @@ def compile_visualization(identifier, points, folder): # pylint: disable=unused-
     unknown = []
 
     for point in points:
-        bin = unknown
-    
+        engagement_bin = unknown
+
         if point.secondary_identifier == 'active':
-            bin = active
+            engagement_bin = active
         elif point.secondary_identifier == 'passive':
-            bin = passive
-        
+            engagement_bin = passive
+
         timestamp = time.mktime(point.created.timetuple())
-    
+
         metadata = point.fetch_properties()
-    
-        bin.append({
+
+        engagement_bin.append({
             'timestamp': timestamp,
             'event': metadata['type']
         })
-    
+
     active.sort(key=lambda item: item['timestamp'])
     passive.sort(key=lambda item: item['timestamp'])
     unknown.sort(key=lambda item: item['timestamp'])
-    
+
     timestamps = {
         'active': active,
         'passive': passive,
