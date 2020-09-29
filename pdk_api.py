@@ -10,10 +10,11 @@ import traceback
 import arrow
 
 from django.conf import settings
+from django.template.loader import render_to_string
 
 from passive_data_kit.models import DataSourceReference, DataPoint
 
-from .models import ExternalDataSource
+from .models import ExternalDataSource, ExternalDataRequest
 
 
 CUSTOM_GENERATORS = (
@@ -195,3 +196,60 @@ def external_data_metadata(point):
                     pass
 
     return metadata
+    
+def pdk_custom_source_header(source):
+    context = {}
+    
+    data_request = ExternalDataRequest.objects.filter(identifier=source).first()
+    
+    if data_request is not None:
+    	for external_source in data_request.sources.all():
+    		engagement_identifier = 'pdk-external-engagement-' + external_source.identifier
+    
+    return render_to_string('pdk_external_source_header.html', context)
+
+def compile_visualization(identifier, points, folder, source=None):
+    try:
+        generator_module = importlib.import_module('.generators.' + identifier.replace('-', '_'), package='passive_data_kit_external_data')
+
+        try:
+            generator_module.compile_visualization(identifier, points, folder, source)
+        except TypeError:
+            generator_module.compile_visualization(identifier, points, folder)
+    except ImportError:
+        pass
+    except AttributeError:
+        pass
+
+def visualization(source, generator):
+    try:
+        generator_module = importlib.import_module('.generators.' + generator.replace('-', '_'), package='passive_data_kit_external_data')
+
+        output = generator_module.visualization(source, generator)
+
+        if output is not None:
+            return output
+    except ImportError:
+        traceback.print_exc()
+        # pass
+    except AttributeError:
+        traceback.print_exc()
+        # pass
+
+    context = {}
+    context['source'] = source
+    context['generator_identifier'] = generator
+
+    rows = []
+
+    for point in DataPoint.objects.filter(source=source.identifier, generator_identifier=generator).order_by('-created')[:1000]:
+        row = {}
+
+        row['created'] = point.created
+        row['value'] = '-'
+
+        rows.append(row)
+
+    context['table_rows'] = rows
+
+    return render_to_string('pdk_generic_viz_template.html', context)

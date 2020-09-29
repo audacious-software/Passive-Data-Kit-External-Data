@@ -1,0 +1,237 @@
+{% load passive_data_kit %}
+
+<h4>{{ external_source_name }}</h4>
+
+<div class="row">
+    <div class="col-md-9">
+        <div id="pdk-external-engagement-chart" style="border: #EDEEED solid 1px;"></div>
+        <div id="pdk-external-engagement-chart-slider"></div>
+        <div id="pdk-external-engagement-chart-range">
+               	<label id="range_start"></label>
+               	<label id="range_end" style="float: right;"></label>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="row">
+            <div class="form-group col-md-12">
+                <label class="text-center" style="width: 100%;">
+                	<span class="text-success">Active Events</span> &bull; <span class="text-info">Passive Events</span>
+                </label>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-success" id="progress_active" role="progressbar" style="width: 30%"></div>
+                    <div class="progress-bar progress-bar-info" id="progress_passive"  role="progressbar" style="width: 20%"></div>
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="start_date">Start Date</label>
+                <input type="text" class="form-control" id="start_date" aria-describedby="start_date_help" placeholder="Start Date">
+                <small id="start_date_help" class="form-text text-muted">Optional</small>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="end_date">End Date</label>
+                <input type="text" class="form-control" id="end_date" aria-describedby="end_date_help" placeholder="End Date">
+                <small id="end_date_help" class="form-text text-muted">Optional</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.showVisualization = function() {
+        var active = [];
+        var passive = [];
+        var unknown = [];
+        
+        var lookup = {};
+        
+        var minTime = Number.MAX_SAFE_INTEGER;
+        var maxTime = 0;
+
+        {% for event in events.active %}
+            active.push({
+                'x': {{ event.timestamp }},
+                'y': 2,
+                'event': '{{ event.event }}'
+            });
+            
+            lookup["" + {{ event.timestamp }}] = '{{ event.event }}';
+            
+            if ({{ event.timestamp }} < minTime) {
+                minTime = {{ event.timestamp }};
+            } 
+
+            if ({{ event.timestamp }} > maxTime) {
+                maxTime = {{ event.timestamp }};
+            } 
+        {% endfor %}
+
+        {% for event in events.passive %}
+            passive.push({
+                'x': {{ event.timestamp }},
+                'y': 1,
+                'event': '{{ event.event }}'
+            });
+
+            lookup["" + {{ event.timestamp }}] = '{{ event.event }}';
+
+            if ({{ event.timestamp }} < minTime) {
+                minTime = {{ event.timestamp }};
+            } 
+
+            if ({{ event.timestamp }} > maxTime) {
+                maxTime = {{ event.timestamp }};
+            } 
+        {% endfor %}
+
+        var graph = new Rickshaw.Graph( {
+            element: document.querySelector("#pdk-external-engagement-chart"), 
+            height: 200, 
+            renderer: 'scatterplot',
+            min: 0,
+            max: 3,
+            series: [{
+                name: 'Active',
+                color: 'green',
+                data: active
+            }, {
+                name: 'Passive',
+                color: 'steelblue',
+                data: passive
+            }]
+        });
+
+        var slider = new Rickshaw.Graph.RangeSlider({
+            graph: graph,
+            element: document.querySelector('#pdk-external-engagement-chart-slider')
+        });
+        
+        graph.render();
+
+        var xAxis = new Rickshaw.Graph.Axis.Time({
+            graph: graph,
+            timeFixture: new Rickshaw.Fixtures.Time.Local()
+        });
+        
+        xAxis.render();
+
+        var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+            graph: graph,
+            xFormatter: function(x) {
+                var momentDate = moment(x * 1000);
+                return momentDate.format('ddd LLL');
+            },
+            formatter: function(series, x, y) {
+                var momentDate = moment(x * 1000);
+
+                var date = '<span class="date">' + momentDate.format('ddd LLL') + '</span>';
+                
+                var eventType = lookup["" + x];
+                
+                if (eventType != undefined) {
+                    return series.name + ": " + eventType + '<br>' + date;
+                }
+                
+                var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
+                var content = swatch + series.name + ":---: " + parseInt(y - 1) + '<br>' + date;
+                return content;
+            }
+        });
+        
+        var window_start = null;
+        var window_end = null;
+        
+        var updateCounts = function(min, max) {
+        	if (min == undefined) {
+        		min = minTime;
+        	}
+
+        	if (max == undefined) {
+        		max = maxTime;
+        	}
+        	
+        	console.log("MIN: " + min);
+        	console.log("MAX: " + max);
+        	
+            var activeCount = 0;
+            var passiveCount = 0;
+            
+            for (var i = 0; i < active.length; i++) {
+                if (active[i]["x"] <= max && active[i]["x"] >= min) { 
+                    activeCount += 1;
+                }
+            }
+
+            for (var i = 0; i < passive.length; i++) {
+                if (passive[i]["x"] <= max && passive[i]["x"] >= min) { 
+                    passiveCount += 1;
+                }
+            }
+            
+            var activePart = activeCount / (activeCount + passiveCount);
+            var passivePart = passiveCount / (activeCount + passiveCount);
+            
+            $("#progress_active").css("width", (activePart * 100) + "%");
+            $("#progress_active").html("" + activeCount);
+
+            $("#progress_passive").css("width", (passivePart * 100) + "%");
+            $("#progress_passive").html("" + passiveCount);
+
+            console.log("ACTIVE / PASSIVE");
+            console.log(activeCount + " // " + passiveCount);        
+            
+            $("#range_start").html(moment(min * 1000).format("L LT"));
+            $("#range_end").html(moment(max * 1000).format("L LT"));
+        };
+        
+        var adjustDate = function() {
+            if (window_start != null) {
+                graph.window.xMin = window_start.unix();
+            } else {
+                graph.window.xMin = minTime;
+            }
+
+            if (window_end != null) {
+                graph.window.xMax = window_end.add(1, "days").unix();
+            } else {
+                graph.window.xMax = maxTime;
+            }
+
+            graph.update();
+            
+            updateCounts(graph.window.xMin, graph.window.xMax);
+        }
+
+        $('#start_date').datepicker();
+        $('#end_date').datepicker();
+        
+        $('#start_date').change(function(e) {
+            var value = $('#start_date').val();
+            
+            if (value != undefined && value != '') {
+                window_start = moment(value, "MM/DD/YYYY");
+            } else {
+                window_start = null;
+            }
+            
+            adjustDate();
+        });
+
+        $('#end_date').change(function(e) {
+            var value = $('#end_date').val();
+            
+            if (value != undefined && value != '') {
+                window_end = moment(value, "MM/DD/YYYY");
+            } else {
+                window_end = null;
+            }
+
+            adjustDate();
+        });
+        
+        slider.onSlide(function(graph, xMin, xMax) {
+            updateCounts(xMin, xMax);
+        });
+        
+        adjustDate();
+    }
+</script>
