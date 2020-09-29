@@ -92,8 +92,13 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
         if 'identifier' in request.session:
             data_request = ExternalDataRequest.objects.filter(identifier=request.session['identifier']).first()
 
+        identifier = request.session.get('identifier', None)
+
+        if identifier is None:
+            identifier = request.POST.get('identifier', 'missing-id')
+
         if data_request is None:
-            data_request = ExternalDataRequest(identifier=request.POST.get('identifier', 'missing-id'), requested=timezone.now())
+            data_request = ExternalDataRequest(identifier=identifier, requested=timezone.now())
 
         if 'extras' in request.session:
             for key in request.session['extras']:
