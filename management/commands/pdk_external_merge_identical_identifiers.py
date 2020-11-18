@@ -1,5 +1,7 @@
 # pylint: disable=no-member,line-too-long
 
+from __future__ import print_function
+
 from django.core.management.base import BaseCommand
 
 from passive_data_kit.decorators import handle_lock
@@ -17,7 +19,7 @@ class Command(BaseCommand):
 
         for identifier in identifiers:
             if ExternalDataRequest.objects.filter(identifier=identifier).count() > 1:
-                print 'De-duplicating request ' + identifier + '...'
+                print('De-duplicating request ' + identifier + '...')
 
                 original_item = None
 

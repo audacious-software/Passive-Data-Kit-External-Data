@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long, no-member
 
+from __future__ import print_function
+
 import codecs
 import csv
 import cStringIO
@@ -134,7 +136,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                                 metadata = pdk_api.external_data_metadata(point)
 
                                             except TypeError as exception:
-                                                print 'Verify that ' + app + ' implements all external_data_metadata arguments!'
+                                                print('Verify that ' + app + ' implements all external_data_metadata arguments!')
                                                 raise exception
                                         except ImportError:
                                             metadata = None

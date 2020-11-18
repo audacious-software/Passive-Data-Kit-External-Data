@@ -1,5 +1,7 @@
 # pylint: disable=no-member,line-too-long
 
+from __future__ import print_function
+
 import base64
 import os
 
@@ -26,7 +28,7 @@ class Command(BaseCommand):
     @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         for data_file in ExternalDataRequestFile.objects.filter(processed=None, skipped=None):
-            print 'Processing ' + str(data_file.data_file.path) + '...'
+            print('Processing ' + str(data_file.data_file.path) + '...')
 
             if data_file.process() is False:
                 print 'Unable to process ' + str(data_file.data_file.path) + '.'

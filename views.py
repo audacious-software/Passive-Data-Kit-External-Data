@@ -60,7 +60,7 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
     context['sources'] = ExternalDataSource.objects.all().order_by('priority')
 
-    if request.method == 'GET':
+    if request.method == 'GET': # pylint: disable=no-else-return
         if 'pending_sites' in request.session:
             del request.session['pending_sites']
 
@@ -187,7 +187,7 @@ def pdk_external_upload_data(request, token):
 
     data_request = ExternalDataRequest.objects.filter(token=token).first()
 
-    if data_request is not None:
+    if data_request is not None: # pylint: disable=no-else-return
         context['data_request'] = data_request
         context['now_time'] = timezone.now()
 

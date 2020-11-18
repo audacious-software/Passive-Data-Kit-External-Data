@@ -32,14 +32,14 @@ def process_search_history(request_identifier, file_json):
     for search in search_history:
         created = arrow.get(search['time']).datetime
 
-        search['pdk_encrypted_title'] = encrypt_content(search['title'].encode('utf-8')),
+        search['pdk_encrypted_title'] = encrypt_content(search['title'].encode('utf-8'))
 
         annotate_field(search['title'], 'title', search['title']['title'])
 
         del search['title']
 
         if 'titleUrl' in search:
-            search['pdk_encrypted_titleUrl'] = encrypt_content(search['titleUrl'].encode('utf-8')),
+            search['pdk_encrypted_titleUrl'] = encrypt_content(search['titleUrl'].encode('utf-8'))
             search['pdk_length_titleUrl'] = len(search['titleUrl'])
 
             del search['titleUrl']
@@ -52,7 +52,7 @@ def process_uploads(request_identifier, file_json):
     uploads = json.loads(file_json)
 
     for upload in uploads:
-        upload['pdk_encrypted_title'] = encrypt_content(upload['snippet']['title'].encode('utf-8')),
+        upload['pdk_encrypted_title'] = encrypt_content(upload['snippet']['title'].encode('utf-8'))
 
         annotate_field(upload, 'title', upload['snippet']['title'])
 
@@ -78,7 +78,7 @@ def process_likes(request_identifier, file_json):
     likes = json.loads(file_json)
 
     for like in likes:
-        like['pdk_encrypted_title'] = encrypt_content(like['snippet']['title'].encode('utf-8')),
+        like['pdk_encrypted_title'] = encrypt_content(like['snippet']['title'].encode('utf-8'))
         like['pdk_length_title'] = len(like['snippet']['title'])
 
         annotate_field(like, 'title', like['snippet']['title'])

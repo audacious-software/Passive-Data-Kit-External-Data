@@ -1,5 +1,7 @@
 # pylint: disable=no-member,line-too-long
 
+from __future__ import print_function
+
 import base64
 import getpass
 
@@ -37,4 +39,4 @@ class Command(BaseCommand):
 
         cleartext = box.decrypt(base64.b64decode(options['text']))
 
-        print cleartext
+        print(cleartext)

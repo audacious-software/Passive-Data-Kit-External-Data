@@ -7,7 +7,7 @@ import re
 import traceback
 import zipfile
 
-import StringIO
+from io import StringIO
 
 import arrow
 

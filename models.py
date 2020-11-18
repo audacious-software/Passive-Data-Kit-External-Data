@@ -164,8 +164,8 @@ class ExternalDataRequest(models.Model):
 
 
 class ExternalDataRequestFile(models.Model):
-    request = models.ForeignKey(ExternalDataRequest, related_name='data_files')
-    source = models.ForeignKey(ExternalDataSource, related_name='data_files')
+    request = models.ForeignKey(ExternalDataRequest, related_name='data_files', on_delete=models.CASCADE)
+    source = models.ForeignKey(ExternalDataSource, related_name='data_files', on_delete=models.CASCADE)
 
     data_file = models.FileField(upload_to='pdk_external_files/')
 
