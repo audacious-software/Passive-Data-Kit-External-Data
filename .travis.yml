@@ -1,4 +1,5 @@
-dist: trusty
+dist: bionic
+language: python
 
 env:
 
@@ -12,15 +13,14 @@ addons:
   postgresql: 9.5
   apt:
     packages:
-    - spatialite-bin
-    - postgresql-9.5-postgis-2.3
+      - spatialite-bin
+      - postgresql-9.5-postgis-2.4
   
 before_install:
   - export PYTHONPATH=$HOME/builds/audaciouscode/pdk
   
 install:
   - pip install -r requirements.txt
-  - pip install git+git://github.com/tinio/pysqlite.git@extension-enabled#egg=pysqlite
 
 before_script:
   - psql -U postgres -c "create extension postgis"
