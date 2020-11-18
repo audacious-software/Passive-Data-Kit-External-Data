@@ -31,7 +31,7 @@ class Command(BaseCommand):
             print('Processing ' + str(data_file.data_file.path) + '...')
 
             if data_file.process() is False:
-                print 'Unable to process ' + str(data_file.data_file.path) + '.'
+                print('Unable to process ' + str(data_file.data_file.path) + '.')
 
                 data_file.skipped = timezone.now()
                 data_file.save()

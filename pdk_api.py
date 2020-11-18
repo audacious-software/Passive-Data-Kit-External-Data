@@ -4,10 +4,11 @@ from __future__ import print_function
 
 import codecs
 import csv
-import cStringIO
 import importlib
 import tempfile
 import traceback
+
+from io import StringIO
 
 import arrow
 

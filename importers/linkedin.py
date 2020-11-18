@@ -18,7 +18,7 @@ from passive_data_kit.models import DataPoint
 from ..utils import hash_content, encrypt_content, create_engagement_event
 
 def process_follows(request_identifier, follows_raw):
-    file_like = StringIO.StringIO(follows_raw)
+    file_like = StringIO(follows_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -36,7 +36,7 @@ def process_follows(request_identifier, follows_raw):
             create_engagement_event(source='linkedin', identifier=request_identifier, passive=False, engagement_type='follow', start=created)
 
 def process_connections(request_identifier, connections_raw):
-    file_like = StringIO.StringIO(connections_raw)
+    file_like = StringIO(connections_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -64,7 +64,7 @@ def process_connections(request_identifier, connections_raw):
             DataPoint.objects.create_data_point('pdk-external-linkedin-connection', request_identifier, connection_point, user_agent='Passive Data Kit External Importer', created=created)
 
 def process_contacts(request_identifier, contacts_raw):
-    file_like = StringIO.StringIO(contacts_raw)
+    file_like = StringIO(contacts_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -90,7 +90,7 @@ def process_contacts(request_identifier, contacts_raw):
             contact_point['pdk_encrypted_emails'] = encrypt_content(row[5])
             contact_point['pdk_encrypted_phone_numbers'] = encrypt_content(row[6])
 
-            row_io = StringIO.StringIO()
+            row_io = StringIO()
             row_csv = csv.writer(row_io)
             row_csv.writerow(row)
 
@@ -99,7 +99,7 @@ def process_contacts(request_identifier, contacts_raw):
             DataPoint.objects.create_data_point('pdk-external-linkedin-contact', request_identifier, contact_point, user_agent='Passive Data Kit External Importer', created=created)
 
 def process_email_addresses(request_identifier, emails_raw):
-    file_like = StringIO.StringIO(emails_raw)
+    file_like = StringIO(emails_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -119,7 +119,7 @@ def process_email_addresses(request_identifier, emails_raw):
                 DataPoint.objects.create_data_point('pdk-external-linkedin-email', request_identifier, email_point, user_agent='Passive Data Kit External Importer', created=created)
 
 def process_groups(request_identifier, groups_raw):
-    file_like = StringIO.StringIO(groups_raw)
+    file_like = StringIO(groups_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -141,7 +141,7 @@ def process_groups(request_identifier, groups_raw):
 
 
 def process_invitations(request_identifier, invitations_raw):
-    file_like = StringIO.StringIO(invitations_raw)
+    file_like = StringIO(invitations_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -165,7 +165,7 @@ def process_invitations(request_identifier, invitations_raw):
             DataPoint.objects.create_data_point('pdk-external-linkedin-invitation', request_identifier, invite_point, user_agent='Passive Data Kit External Importer', created=created)
 
 def process_messages(request_identifier, messages_raw):
-    file_like = StringIO.StringIO(messages_raw)
+    file_like = StringIO(messages_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -196,7 +196,7 @@ def process_messages(request_identifier, messages_raw):
 
 
 def process_recommendations_given(request_identifier, recommendations_raw):
-    file_like = StringIO.StringIO(recommendations_raw)
+    file_like = StringIO(recommendations_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -229,7 +229,7 @@ def process_recommendations_given(request_identifier, recommendations_raw):
             create_engagement_event(source='linkedin', identifier=request_identifier, passive=False, engagement_type='recommendation', start=created)
 
 def process_recommendations_received(request_identifier, recommendations_raw): # pylint: disable=invalid-name
-    file_like = StringIO.StringIO(recommendations_raw)
+    file_like = StringIO(recommendations_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -260,7 +260,7 @@ def process_recommendations_received(request_identifier, recommendations_raw): #
             DataPoint.objects.create_data_point('pdk-external-linkedin-recommendation-received', request_identifier, recommendation_point, user_agent='Passive Data Kit External Importer', created=created)
 
 def process_registration(request_identifier, registration_raw):
-    file_like = StringIO.StringIO(registration_raw)
+    file_like = StringIO(registration_raw)
 
     csv_reader = csv.reader(file_like)
 
