@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long
 
+from __future__ import print_function
+
 import json
 import re
 import traceback
@@ -115,7 +117,7 @@ def import_data(request_identifier, path):
             elif re.match(r'^.*\/likes.json', content_file):
                 process_likes(request_identifier, content_bundle.open(content_file).read())
             else:
-                print '[' + request_identifier + ']: Unable to process: ' + content_file
+                print('[' + request_identifier + ']: Unable to process: ' + content_file)
         except: # pylint: disable=bare-except
             traceback.print_exc()
             return False

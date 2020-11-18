@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long, no-member
 # -*- coding: utf-8 -*-
+
+from __future__ import print_function
 from __future__ import unicode_literals
 
 import importlib
@@ -174,7 +176,7 @@ class ExternalDataRequestFile(models.Model):
 
     def process(self):
         if self.processed is not None:
-            print 'Already processed: ' + self.data_file.path
+            print('Already processed: ' + self.data_file.path)
 
             return False
 

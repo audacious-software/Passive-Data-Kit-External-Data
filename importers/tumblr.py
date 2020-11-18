@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long
 
+from __future__ import print_function
+
 import json
 import re
 import traceback
@@ -54,7 +56,7 @@ def process_ads_served(request_identifier, ads_served):
             create_engagement_event(source='tumblr', identifier=request_identifier, passive=True, engagement_type='ad-view', start=created)
 
         except arrow.parser.ParserError:
-            print '[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".'
+            print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
 
 def process_active_times(request_identifier, active_times):
     for item in active_times:
@@ -142,7 +144,7 @@ def import_data(request_identifier, path):
             elif re.match(r'^payload.*\.json', content_file):
                 process_payload(request_identifier, content_bundle.open(content_file).read())
             else:
-                print '[' + request_identifier + ']: Unable to process: ' + content_file
+                print('[' + request_identifier + ']: Unable to process: ' + content_file)
         except: # pylint: disable=bare-except
             traceback.print_exc()
             return False
