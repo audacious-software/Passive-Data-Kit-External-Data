@@ -14,6 +14,18 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
+def annotate_field(container, field_name=None, field_value=None):
+    for app in settings.INSTALLED_APPS:
+        try:
+            pdk_external_api = importlib.import_module(app + '.pdk_external_api')
+
+            pdk_external_api.pdk_annotate_field(container, field_name, field_value)
+        except ImportError:
+            pass
+        except AttributeError:
+            pass
+
+
 class ExternalDataSource(models.Model):
     name = models.CharField(max_length=1024)
     identifier = models.SlugField(max_length=1024, unique=True)
@@ -32,7 +44,6 @@ class ExternalDataSource(models.Model):
         return self.name
 
     def fetch_configuration(self):
-        # return json.loads(self.configuration)
         return json.loads(self.configuration)
 
 

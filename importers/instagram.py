@@ -10,7 +10,9 @@ import pytz
 
 from passive_data_kit.models import DataPoint
 
-from ..utils import hash_content, encrypt_content
+from passive_data_kit_external_data.models import annotate_field
+
+from ..utils import hash_content, encrypt_content, create_engagement_event
 
 def process_comments(request_identifier, comments_raw):
     comments = json.loads(comments_raw)
@@ -27,12 +29,15 @@ def process_comments(request_identifier, comments_raw):
             created = arrow.get(comment[0]).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
 
             comment_point['pdk_encrypted_comment'] = encrypt_content(comment[1].encode('utf-8'))
-            comment_point['pdk_length_comment'] = len(comment[1])
+
+            annotate_field(comment, 'comment', comment[1])
 
             comment_point['pdk_hashed_profile'] = hash_content(comment[2])
             comment_point['pdk_encrypted_profile'] = encrypt_content(comment[2].encode('utf-8'))
 
             DataPoint.objects.create_data_point('pdk-external-instagram-comment', request_identifier, comment_point, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='instagram', identifier=request_identifier, passive=False, engagement_type='comment', start=created)
 
 def process_media(request_identifier, media_raw):
     media = json.loads(media_raw)
@@ -42,34 +47,42 @@ def process_media(request_identifier, media_raw):
             created = arrow.get(photo['taken_at']).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
 
             photo['pdk_encrypted_caption'] = encrypt_content(photo['caption'].encode('utf-8'))
-            photo['pdk_length_caption'] = len(photo['caption'])
+
+            annotate_field(photo, 'caption', photo['caption'])
 
             del photo['caption']
 
             if 'location' in photo:
                 photo['pdk_encrypted_location'] = encrypt_content(photo['location'].encode('utf-8'))
-                photo['pdk_length_location'] = len(photo['location'])
+
+                annotate_field(photo, 'location', photo['location'])
 
                 del photo['location']
 
             DataPoint.objects.create_data_point('pdk-external-instagram-photo', request_identifier, photo, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='instagram', identifier=request_identifier, passive=False, engagement_type='photo', start=created)
 
     if 'videos' in media:
         for video in media['videos']:
             created = arrow.get(video['taken_at']).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
 
             video['pdk_encrypted_caption'] = encrypt_content(video['caption'].encode('utf-8'))
-            video['pdk_length_caption'] = len(video['caption'])
+
+            annotate_field(video, 'caption', video['caption'])
 
             del video['caption']
 
             if 'location' in video:
                 video['pdk_encrypted_location'] = encrypt_content(video['location'].encode('utf-8'))
-                video['pdk_length_location'] = len(video['location'])
+
+                annotate_field(video, 'location', video['location'])
 
                 del video['location']
 
             DataPoint.objects.create_data_point('pdk-external-instagram-video', request_identifier, video, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='instagram', identifier=request_identifier, passive=False, engagement_type='video', start=created)
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)

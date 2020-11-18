@@ -13,7 +13,7 @@ from django.conf import settings
 
 from passive_data_kit.models import DataPoint
 
-from ..utils import hash_content, encrypt_content
+from ..utils import hash_content, encrypt_content, create_engagement_event
 
 def process_follows(request_identifier, follows_raw):
     file_like = StringIO.StringIO(follows_raw)
@@ -30,6 +30,8 @@ def process_follows(request_identifier, follows_raw):
             follow_point['pdk_hashed_organization'] = hash_content(row[0])
 
             DataPoint.objects.create_data_point('pdk-external-linkedin-follow', request_identifier, follow_point, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='linkedin', identifier=request_identifier, passive=False, engagement_type='follow', start=created)
 
 def process_connections(request_identifier, connections_raw):
     file_like = StringIO.StringIO(connections_raw)
@@ -188,6 +190,8 @@ def process_messages(request_identifier, messages_raw):
 
             DataPoint.objects.create_data_point('pdk-external-linkedin-message', request_identifier, message_point, user_agent='Passive Data Kit External Importer', created=created)
 
+            create_engagement_event(source='linkedin', identifier=request_identifier, passive=False, engagement_type='message', start=created)
+
 
 def process_recommendations_given(request_identifier, recommendations_raw):
     file_like = StringIO.StringIO(recommendations_raw)
@@ -219,6 +223,8 @@ def process_recommendations_given(request_identifier, recommendations_raw):
                 recommendation_point['pdk_status'] = len(row[5])
 
             DataPoint.objects.create_data_point('pdk-external-linkedin-recommendation-given', request_identifier, recommendation_point, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='linkedin', identifier=request_identifier, passive=False, engagement_type='recommendation', start=created)
 
 def process_recommendations_received(request_identifier, recommendations_raw): # pylint: disable=invalid-name
     file_like = StringIO.StringIO(recommendations_raw)
@@ -270,6 +276,7 @@ def process_registration(request_identifier, registration_raw):
 
             DataPoint.objects.create_data_point('pdk-external-linkedin-registration', request_identifier, registration_point, user_agent='Passive Data Kit External Importer', created=created)
 
+            create_engagement_event(source='linkedin', identifier=request_identifier, passive=False, engagement_type='registration', start=created)
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches
     content_bundle = zipfile.ZipFile(path)

@@ -10,8 +10,9 @@ import arrow
 from django.utils import timezone
 
 from passive_data_kit.models import DataPoint
+from passive_data_kit_external_data.models import annotate_field
 
-from ..utils import hash_content, encrypt_content
+from ..utils import hash_content, encrypt_content, create_engagement_event
 
 def process_likes(request_identifier, likes_raw):
     likes_raw = likes_raw.replace('window.YTD.like.part0 = ', '')
@@ -23,12 +24,15 @@ def process_likes(request_identifier, likes_raw):
             'pdk_hashed_tweetId': hash_content(like['like']['tweetId']),
             'pdk_encrypted_tweetId': encrypt_content(like['like']['tweetId'].encode('utf-8')),
             'pdk_encrypted_fullText': encrypt_content(like['like']['fullText'].encode('utf-8')),
-            'pdk_length_fullText': len(like['like']['fullText']),
         }
+
+        annotate_field(pdk_like, 'fullText', like['like']['fullText'])
 
         created = timezone.now() # No timestamp available in this file!
 
         DataPoint.objects.create_data_point('pdk-external-twitter-like', request_identifier, pdk_like, user_agent='Passive Data Kit External Importer', created=created)
+
+        create_engagement_event(source='twitter', identifier=request_identifier, passive=False, engagement_type='reaction', start=created)
 
 def process_tweets(request_identifier, tweets_raw):
     tweets_raw = tweets_raw.replace('window.YTD.tweet.part0 = ', '')
@@ -51,7 +55,8 @@ def process_tweets(request_identifier, tweets_raw):
 
         if 'full_text' in tweet:
             tweet['pdk_encrypted_full_text'] = encrypt_content(tweet['full_text'].encode('utf-8'))
-            tweet['pdk_length_full_text'] = len(tweet['full_text'])
+
+            annotate_field(tweet, 'full_text', tweet['full_text'])
 
             del tweet['full_text']
 
@@ -71,6 +76,8 @@ def process_tweets(request_identifier, tweets_raw):
 
         DataPoint.objects.create_data_point('pdk-external-twitter-tweet', request_identifier, tweet, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='twitter', identifier=request_identifier, passive=False, engagement_type='post', start=created)
+
 def process_direct_messages(request_identifier, messages_raw):
     messages_raw = messages_raw.replace('window.YTD.direct_message.part0 = ', '')
 
@@ -86,11 +93,12 @@ def process_direct_messages(request_identifier, messages_raw):
                 'pdk_hashed_senderId': hash_content(msg_data['senderId']),
                 'pdk_encrypted_senderId': encrypt_content(msg_data['senderId'].encode('utf-8')),
                 'pdk_encrypted_text': encrypt_content(msg_data['text'].encode('utf-8')),
-                'pdk_length_text': len(msg_data['text']),
                 'id': msg_data['id'],
                 'conversationId': conversation['dmConversation']['conversationId'],
                 'createdAt': msg_data['createdAt']
             }
+
+            annotate_field(pdk_message, 'text', msg_data['text'])
 
             if msg_data['mediaUrls']:
                 media_urls_str = json.dumps(msg_data['mediaUrls'], indent=2)
@@ -99,6 +107,8 @@ def process_direct_messages(request_identifier, messages_raw):
             created = arrow.get(msg_data['createdAt']).datetime
 
             DataPoint.objects.create_data_point('pdk-external-twitter-direct-message', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='twitter', identifier=request_identifier, passive=False, engagement_type='message', start=created)
 
 
 def import_data(request_identifier, path):

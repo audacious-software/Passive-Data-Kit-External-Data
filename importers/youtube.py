@@ -8,8 +8,9 @@ import zipfile
 import arrow
 
 from passive_data_kit.models import DataPoint
+from passive_data_kit_external_data.models import annotate_field
 
-from ..utils import encrypt_content
+from ..utils import encrypt_content, create_engagement_event
 
 def process_watch_history(request_identifier, file_json):
     watch_history = json.loads(file_json)
@@ -17,7 +18,11 @@ def process_watch_history(request_identifier, file_json):
     for watch in watch_history:
         created = arrow.get(watch['time']).datetime
 
+        annotate_field(watch, 'title', watch['title'])
+
         DataPoint.objects.create_data_point('pdk-external-youtube-watch', request_identifier, watch, user_agent='Passive Data Kit External Importer', created=created)
+
+        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='watch', start=created)
 
 def process_search_history(request_identifier, file_json):
     search_history = json.loads(file_json)
@@ -26,7 +31,8 @@ def process_search_history(request_identifier, file_json):
         created = arrow.get(search['time']).datetime
 
         search['pdk_encrypted_title'] = encrypt_content(search['title'].encode('utf-8')),
-        search['pdk_length_title'] = len(search['title'])
+
+        annotate_field(search['title'], 'title', search['title']['title'])
 
         del search['title']
 
@@ -38,12 +44,15 @@ def process_search_history(request_identifier, file_json):
 
         DataPoint.objects.create_data_point('pdk-external-youtube-search', request_identifier, search, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='search', start=created)
+
 def process_uploads(request_identifier, file_json):
     uploads = json.loads(file_json)
 
     for upload in uploads:
         upload['pdk_encrypted_title'] = encrypt_content(upload['snippet']['title'].encode('utf-8')),
-        upload['pdk_length_title'] = len(upload['snippet']['title'])
+
+        annotate_field(upload, 'title', upload['snippet']['title'])
 
         created = arrow.get(upload['snippet']['publishedAt']).datetime
 
@@ -61,12 +70,16 @@ def process_uploads(request_identifier, file_json):
 
         DataPoint.objects.create_data_point('pdk-external-youtube-upload', request_identifier, upload, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='upload', start=created)
+
 def process_likes(request_identifier, file_json):
     likes = json.loads(file_json)
 
     for like in likes:
         like['pdk_encrypted_title'] = encrypt_content(like['snippet']['title'].encode('utf-8')),
         like['pdk_length_title'] = len(like['snippet']['title'])
+
+        annotate_field(like, 'title', like['snippet']['title'])
 
         created = arrow.get(like['snippet']['publishedAt']).datetime
 
@@ -82,9 +95,9 @@ def process_likes(request_identifier, file_json):
 
             del like['contentDetails']
 
-
         DataPoint.objects.create_data_point('pdk-external-youtube-like', request_identifier, like, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='reaction', start=created)
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)

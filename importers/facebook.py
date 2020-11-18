@@ -1,5 +1,8 @@
 # pylint: disable=line-too-long
 
+from __future__ import print_function
+
+import copy
 import json
 import re
 import traceback
@@ -8,6 +11,7 @@ import zipfile
 import arrow
 
 from passive_data_kit.models import DataPoint
+from passive_data_kit_external_data.models import annotate_field
 
 from ..utils import hash_content, encrypt_content, create_engagement_event
 
@@ -15,11 +19,14 @@ def process_comments(request_identifier, comments_raw):
     comments = json.loads(comments_raw)
 
     for comment in comments['comments']:
+        comment = copy.deepcopy(comment)
+
         created = arrow.get(comment['timestamp']).datetime
 
         if 'title' in comment:
             comment['pdk_encrypted_title'] = encrypt_content(comment['title'].encode('utf-8'))
-            comment['pdk_length_title'] = len(comment['title'])
+
+            annotate_field(comment, 'title', comment['title'])
 
             del comment['title']
 
@@ -32,7 +39,8 @@ def process_comments(request_identifier, comments_raw):
 
                     if 'comment' in comment_obj:
                         comment_obj['pdk_encrypted_comment'] = encrypt_content(comment_obj['comment'].encode('utf-8'))
-                        comment_obj['pdk_length_comment'] = len(comment_obj['comment'])
+
+                        annotate_field(comment_obj, 'comment', comment_obj['comment'])
 
                         del comment_obj['comment']
 
@@ -62,11 +70,14 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
         posts = [posts]
 
     for post in posts: # pylint: disable=too-many-nested-blocks
+        post = copy.deepcopy(post)
+
         created = arrow.get(post['timestamp']).datetime
 
         if 'title' in post:
             post['pdk_encrypted_title'] = encrypt_content(post['title'].encode('utf-8'))
-            post['pdk_length_title'] = len(post['title'])
+
+            annotate_field(post, 'title', post['title'])
 
             del post['title']
 
@@ -74,7 +85,8 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
             for datum in post['data']:
                 if 'post' in datum:
                     datum['pdk_encrypted_post'] = encrypt_content(datum['post'].encode('utf-8'))
-                    datum['pdk_length_post'] = len(datum['post'])
+
+                    annotate_field(datum, 'post', datum['post'])
 
                     del datum['post']
 
@@ -87,19 +99,23 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
 
                             if 'name' in event:
                                 event['pdk_encrypted_name'] = encrypt_content(event['name'].encode('utf-8'))
-                                event['pdk_length_name'] = len(event['name'])
+
+                                annotate_field(event, 'name', event['name'])
 
                                 del event['name']
 
                             if 'description' in event:
                                 event['pdk_encrypted_description'] = encrypt_content(event['description'].encode('utf-8'))
-                                event['pdk_length_description'] = len(event['description'])
+
+                                annotate_field(event, 'description', event['description'])
 
                                 del event['description']
 
                             if 'place' in event:
                                 place_str = json.dumps(event['place'], indent=2)
                                 event['pdk_encrypted_place'] = encrypt_content(place_str.encode('utf-8'))
+
+                                annotate_field(event, 'place', place_str)
 
                                 del event['place']
 
@@ -108,29 +124,32 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
 
                             if 'url' in external_context:
                                 external_context['pdk_encrypted_url'] = encrypt_content(external_context['url'].encode('utf-8'))
-                                external_context['pdk_length_url'] = len(external_context['url'])
+
+                                annotate_field(external_context, 'url', external_context['url'])
 
                                 del external_context['url']
-
 
                         if 'media' in datum:
                             media = datum['media']
 
                             if 'title' in media:
                                 media['pdk_encrypted_title'] = encrypt_content(media['title'].encode('utf-8'))
-                                media['pdk_length_title'] = len(media['title'])
+
+                                annotate_field(media, 'title', media['title'])
 
                                 del media['title']
 
                             if 'description' in media:
                                 media['pdk_encrypted_description'] = encrypt_content(media['description'].encode('utf-8'))
-                                media['pdk_length_description'] = len(media['description'])
+
+                                annotate_field(media, 'description', media['description'])
 
                                 del media['description']
 
                             if 'uri' in media:
                                 media['pdk_encrypted_uri'] = encrypt_content(media['uri'].encode('utf-8'))
-                                media['pdk_length_uri'] = len(media['uri'])
+
+                                annotate_field(media, 'uri', media['uri'])
 
                                 del media['uri']
 
@@ -170,6 +189,8 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
                         entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                         entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                        annotate_field(entry, 'name', entry['data']['name'])
+
                         del entry['data']['name']
 
                         DataPoint.objects.create_data_point('pdk-external-facebook-watch', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -188,6 +209,8 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
                         entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                         entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                        annotate_field(entry, 'name', entry['data']['name'])
+
                         del entry['data']['name']
 
                         DataPoint.objects.create_data_point('pdk-external-facebook-watch', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -205,6 +228,8 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
+
+                annotate_field(entry, 'name', entry['data']['name'])
 
                 del entry['data']['name']
 
@@ -229,6 +254,8 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                annotate_field(entry, 'name', entry['data']['name'])
+
                 del entry['data']['name']
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-link', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -249,6 +276,8 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
                         entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                         entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                        annotate_field(entry, 'name', entry['data']['name'])
+
                         del entry['data']['name']
 
                         DataPoint.objects.create_data_point('pdk-external-facebook-market', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -266,6 +295,8 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
+
+                annotate_field(entry, 'name', entry['data']['name'])
 
                 del entry['data']['name']
 
@@ -289,6 +320,8 @@ def process_visited(request_identifier, viewed_raw):
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                annotate_field(entry, 'name', entry['data']['name'])
+
                 del entry['data']['name']
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-profile-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -306,6 +339,8 @@ def process_visited(request_identifier, viewed_raw):
 
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
+
+                annotate_field(entry, 'name', entry['data']['name'])
 
                 del entry['data']['name']
 
@@ -325,6 +360,8 @@ def process_visited(request_identifier, viewed_raw):
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                annotate_field(entry, 'name', entry['data']['name'])
+
                 del entry['data']['name']
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-event-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -343,6 +380,8 @@ def process_visited(request_identifier, viewed_raw):
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
 
+                annotate_field(entry, 'name', entry['data']['name'])
+
                 del entry['data']['name']
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-group-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
@@ -357,7 +396,8 @@ def process_page_reactions(request_identifier, reactions_raw):
 
         if 'name' in reaction:
             reaction['pdk_encrypted_name'] = encrypt_content(reaction['name'].encode('utf-8'))
-            reaction['pdk_length_name'] = len(reaction['name'])
+
+            annotate_field(reaction, 'name', reaction['name'])
 
             del reaction['name']
 
@@ -376,7 +416,8 @@ def process_post_comment_reactions(request_identifier, reactions_raw):
 
         if 'title' in reaction:
             reaction['pdk_encrypted_title'] = encrypt_content(reaction['title'].encode('utf-8'))
-            reaction['pdk_length_title'] = len(reaction['title'])
+
+            annotate_field(reaction, 'title', reaction['title'])
 
             if '\'s post' in reaction['title']:
                 reaction['content_type'] = 'post'
@@ -394,7 +435,8 @@ def process_post_comment_reactions(request_identifier, reactions_raw):
 
                     if 'actor' in data_item['reaction']:
                         data_item['reaction']['pdk_encrypted_actor'] = encrypt_content(data_item['reaction']['actor'].encode('utf-8'))
-                        data_item['reaction']['pdk_length_actor'] = len(data_item['reaction']['actor'])
+
+                        annotate_field(data_item['reaction'], 'actor', data_item['reaction']['actor'])
 
                         del data_item['reaction']['actor']
 
@@ -424,7 +466,7 @@ def import_data(request_identifier, path):
             elif re.match(r'^likes_and_reactions\/posts_and_comments.json', content_file):
                 process_post_comment_reactions(request_identifier, content_bundle.open(content_file).read())
             else:
-                print '[' + request_identifier + ']: Unable to process: ' + content_file
+                print('[' + request_identifier + ']: Unable to process: ' + content_file)
         except: # pylint: disable=bare-except
             traceback.print_exc()
             return False

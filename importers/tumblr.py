@@ -8,8 +8,9 @@ import zipfile
 import arrow
 
 from passive_data_kit.models import DataPoint
+from passive_data_kit_external_data.models import annotate_field
 
-from ..utils import hash_content, encrypt_content
+from ..utils import hash_content, encrypt_content, create_engagement_event
 
 def process_dashboard(request_identifier, dashboard):
     for item in dashboard:
@@ -22,13 +23,16 @@ def process_unfollows(request_identifier, unfollows):
         pdk_item = {
             'pdk_hashed_blog_name': hash_content(item['blog_name']),
             'pdk_encrypted_blog_name': encrypt_content(item['blog_name'].encode('utf-8')),
-            'pdk_length_blog_name': len(item['blog_name']),
             'timestamp': item['timestamp'],
         }
+
+        annotate_field(pdk_item, 'blog_name', item['blog_name'])
 
         created = arrow.get(item['timestamp']).datetime
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-unfollow', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+
+        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='follow', start=created)
 
 def process_ads_served(request_identifier, ads_served):
     for item in ads_served:
@@ -46,6 +50,9 @@ def process_ads_served(request_identifier, ads_served):
             created = arrow.get(item['serve_time']).datetime
 
             DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='ad-view', start=created)
+
         except arrow.ParserError:
             print '[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".'
 
@@ -59,11 +66,15 @@ def process_active_times(request_identifier, active_times):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-active-time', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='active-time', start=created)
+
 def process_api_applications_used(request_identifier, api_applications_used):
     for item in api_applications_used:
         created = arrow.get(item['session_created_time']).datetime
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-api-session', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
+
+        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='api-session', start=created)
 
 def process_push_notifications(request_identifier, notifications):
     for item in notifications:
@@ -83,11 +94,15 @@ def process_push_notifications(request_identifier, notifications):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-open', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='notification-open', start=created)
+
 def process_push_notification_settings(request_identifier, settings): # pylint: disable=invalid-name
     for item in settings:
         created = arrow.get(item['timestamp']).datetime
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-setting', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
+
+        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='notification-setting', start=created)
 
 def process_payload(request_identifier, payload_json):
     payloads = json.loads(payload_json)
