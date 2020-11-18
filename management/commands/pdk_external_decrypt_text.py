@@ -5,6 +5,8 @@ from __future__ import print_function
 import base64
 import getpass
 
+from six.moves import input
+
 from nacl.public import SealedBox, PrivateKey
 
 from django.core.management.base import BaseCommand
@@ -33,7 +35,7 @@ class Command(BaseCommand):
             options['key'] = getpass.getpass('Enter private key: ')
 
         if options['text'] is None:
-            options['text'] = raw_input('Enter encrypted text: ')
+            options['text'] = input('Enter encrypted text: ')
 
         box = SealedBox(PrivateKey(base64.b64decode(options['key'])))
 

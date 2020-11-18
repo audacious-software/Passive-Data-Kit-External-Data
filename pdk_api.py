@@ -28,7 +28,7 @@ CUSTOM_GENERATORS = (
 
 class UnicodeWriter: # pylint: disable=old-style-class
     def __init__(self, file_output, dialect=csv.excel, encoding="utf-8-sig", **kwds):
-        self.queue = cStringIO.StringIO()
+        self.queue = StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = file_output
         self.encoder = codecs.getincrementalencoder(encoding)()
