@@ -52,7 +52,7 @@ def process_comments(request_identifier, comments_raw):
 
         DataPoint.objects.create_data_point('pdk-external-facebook-comment', request_identifier, comment, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='facebook', identifier=request_identifier, passive=False, engagement_type='comment', start=created)
+        create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=1.0, engagement_type='comment', start=created)
 
 
 def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-branches, too-many-statements
@@ -169,7 +169,8 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
 
         DataPoint.objects.create_data_point('pdk-external-facebook-post', request_identifier, post, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='facebook', identifier=request_identifier, passive=False, engagement_type='post', start=created)
+        create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=1.0, engagement_type='post', start=created)
+
 
 def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-branches, too-many-statements
     metadata = json.loads(viewed_raw)
@@ -195,7 +196,7 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                         DataPoint.objects.create_data_point('pdk-external-facebook-watch', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                        create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='video', start=created)
+                        create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='video', start=created)
 
                 elif child['name'] == 'Time Viewed':
                     for entry in child['entries']:
@@ -215,7 +216,7 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                         DataPoint.objects.create_data_point('pdk-external-facebook-watch', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                        create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='video', start=created, duration=entry['data']['watch_position_seconds'])
+                        create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='video', start=created, duration=entry['data']['watch_position_seconds'])
 
         elif thing['name'] == 'Facebook Live Videos':
             for entry in thing['entries']:
@@ -235,7 +236,7 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-watch', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='video', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='video', start=created)
 
         elif thing['name'] == 'Articles':
             for entry in thing['entries']:
@@ -260,7 +261,7 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-link', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='link', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='link', start=created)
 
         elif thing['name'] == 'Marketplace Interactions':
             for child in thing['children']:
@@ -282,7 +283,7 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                         DataPoint.objects.create_data_point('pdk-external-facebook-market', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                        create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='shopping', start=created)
+                        create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='shopping', start=created)
 
         elif thing['name'] == 'Ads':
             for entry in thing['entries']:
@@ -302,7 +303,7 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-ad-viewed', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='advertising', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='advertising', start=created)
 
 def process_visited(request_identifier, viewed_raw):
     metadata = json.loads(viewed_raw)
@@ -326,7 +327,7 @@ def process_visited(request_identifier, viewed_raw):
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-profile-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='profile', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='profile', start=created)
 
         elif thing['name'] == 'Page visits':
             for entry in thing['entries']:
@@ -346,7 +347,7 @@ def process_visited(request_identifier, viewed_raw):
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-page-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='page', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='page', start=created)
 
         elif thing['name'] == 'Events visited':
             for entry in thing['entries']:
@@ -366,7 +367,7 @@ def process_visited(request_identifier, viewed_raw):
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-event-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='event', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='event', start=created)
 
         elif thing['name'] == 'Groups visited':
             for entry in thing['entries']:
@@ -386,7 +387,7 @@ def process_visited(request_identifier, viewed_raw):
 
                 DataPoint.objects.create_data_point('pdk-external-facebook-group-visit', request_identifier, entry, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='group', start=created)
+                create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.0, engagement_type='group', start=created)
 
 def process_page_reactions(request_identifier, reactions_raw):
     reactions = json.loads(reactions_raw)
@@ -406,7 +407,7 @@ def process_page_reactions(request_identifier, reactions_raw):
 
         DataPoint.objects.create_data_point('pdk-external-facebook-reaction', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='reaction', start=created)
+        create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.5, engagement_type='reaction', start=created)
 
 def process_post_comment_reactions(request_identifier, reactions_raw):
     reactions = json.loads(reactions_raw)
@@ -442,7 +443,7 @@ def process_post_comment_reactions(request_identifier, reactions_raw):
 
             DataPoint.objects.create_data_point('pdk-external-facebook-reaction', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='facebook', identifier=request_identifier, passive=True, engagement_type='reaction', start=created)
+            create_engagement_event(source='facebook', identifier=request_identifier, engagement_level=0.5, engagement_type='reaction', start=created)
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)

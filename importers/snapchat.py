@@ -42,7 +42,7 @@ def process_chat_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-chat-sent', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, passive=False, engagement_type='message', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='message', start=created)
 
 
 def process_memories_history(request_identifier, json_string):
@@ -61,7 +61,7 @@ def process_memories_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-memory-history', request_identifier, pdk_media, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, passive=False, engagement_type='memory', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='memory', start=created)
 
 
 def process_shared_story(request_identifier, json_string):
@@ -91,7 +91,7 @@ def process_shared_story(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-shared-story', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, passive=False, engagement_type='share', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='share', start=created)
 
 
 def process_snap_history(request_identifier, json_string):
@@ -123,7 +123,7 @@ def process_snap_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-snap-sent', request_identifier, pdk_snap, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, passive=False, engagement_type='message', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='message', start=created)
 
 
 def process_support_notes(request_identifier, json_string):
@@ -146,7 +146,7 @@ def process_support_notes(request_identifier, json_string):
 
             DataPoint.objects.create_data_point('pdk-external-snapchat-support-note', request_identifier, pdk_note, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='snapchat', identifier=request_identifier, passive=False, engagement_type='support', start=created)
+            create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='support', start=created)
 
 
 def process_account_events(request_identifier, json_string):
@@ -166,7 +166,7 @@ def process_account_events(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-login', request_identifier, pdk_login, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, passive=False, engagement_type='login', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='login', start=created)
 
 
 def import_data(request_identifier, path):

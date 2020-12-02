@@ -39,7 +39,7 @@ def process_comments(request_identifier, comments_raw):
 
             DataPoint.objects.create_data_point('pdk-external-instagram-comment', request_identifier, comment_point, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='instagram', identifier=request_identifier, passive=False, engagement_type='comment', start=created)
+            create_engagement_event(source='instagram', identifier=request_identifier, engagement_level=1.0, engagement_type='comment', start=created)
 
 def process_media(request_identifier, media_raw):
     media = json.loads(media_raw)
@@ -63,7 +63,7 @@ def process_media(request_identifier, media_raw):
 
             DataPoint.objects.create_data_point('pdk-external-instagram-photo', request_identifier, photo, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='instagram', identifier=request_identifier, passive=False, engagement_type='photo', start=created)
+            create_engagement_event(source='instagram', identifier=request_identifier, engagement_level=1.0, engagement_type='photo', start=created)
 
     if 'videos' in media:
         for video in media['videos']:
@@ -84,7 +84,7 @@ def process_media(request_identifier, media_raw):
 
             DataPoint.objects.create_data_point('pdk-external-instagram-video', request_identifier, video, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='instagram', identifier=request_identifier, passive=False, engagement_type='video', start=created)
+            create_engagement_event(source='instagram', identifier=request_identifier, engagement_level=1.0, engagement_type='video', start=created)
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)

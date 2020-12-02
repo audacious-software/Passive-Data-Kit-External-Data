@@ -20,6 +20,7 @@ def process_dashboard(request_identifier, dashboard):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-dashboard-item', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
 
+
 def process_unfollows(request_identifier, unfollows):
     for item in unfollows:
         pdk_item = {
@@ -34,7 +35,8 @@ def process_unfollows(request_identifier, unfollows):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-unfollow', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='follow', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=1.0, engagement_type='follow', start=created)
+
 
 def process_ads_served(request_identifier, ads_served):
     for item in ads_served:
@@ -53,7 +55,7 @@ def process_ads_served(request_identifier, ads_served):
 
             DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='tumblr', identifier=request_identifier, passive=True, engagement_type='ad-view', start=created)
+            create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='ad-view', start=created)
 
         except arrow.parser.ParserError:
             print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
@@ -68,7 +70,7 @@ def process_active_times(request_identifier, active_times):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-active-time', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, passive=False, engagement_type='active-time', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=1.0, engagement_type='active-time', start=created)
 
 def process_api_applications_used(request_identifier, api_applications_used):
     for item in api_applications_used:
@@ -76,7 +78,7 @@ def process_api_applications_used(request_identifier, api_applications_used):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-api-session', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, passive=True, engagement_type='api-session', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='api-session', start=created)
 
 def process_push_notifications(request_identifier, notifications):
     for item in notifications:
@@ -96,7 +98,7 @@ def process_push_notifications(request_identifier, notifications):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-open', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, passive=True, engagement_type='notification-open', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='notification-open', start=created)
 
 def process_push_notification_settings(request_identifier, settings): # pylint: disable=invalid-name
     for item in settings:
@@ -104,7 +106,7 @@ def process_push_notification_settings(request_identifier, settings): # pylint: 
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-setting', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, passive=True, engagement_type='notification-setting', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='notification-setting', start=created)
 
 def process_payload(request_identifier, payload_json):
     payloads = json.loads(payload_json)

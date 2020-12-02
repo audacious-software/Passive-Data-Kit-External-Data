@@ -34,7 +34,8 @@ def process_likes(request_identifier, likes_raw):
 
         DataPoint.objects.create_data_point('pdk-external-twitter-like', request_identifier, pdk_like, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='twitter', identifier=request_identifier, passive=False, engagement_type='reaction', start=created)
+        create_engagement_event(source='twitter', identifier=request_identifier, engagement_level=0.5, engagement_type='reaction', start=created)
+
 
 def process_tweets(request_identifier, tweets_raw):
     tweets_raw = tweets_raw.replace('window.YTD.tweet.part0 = ', '')
@@ -78,7 +79,8 @@ def process_tweets(request_identifier, tweets_raw):
 
         DataPoint.objects.create_data_point('pdk-external-twitter-tweet', request_identifier, tweet, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='twitter', identifier=request_identifier, passive=False, engagement_type='post', start=created)
+        create_engagement_event(source='twitter', identifier=request_identifier, engagement_level=1.0, engagement_type='post', start=created)
+
 
 def process_direct_messages(request_identifier, messages_raw):
     messages_raw = messages_raw.replace('window.YTD.direct_message.part0 = ', '')
@@ -110,7 +112,7 @@ def process_direct_messages(request_identifier, messages_raw):
 
             DataPoint.objects.create_data_point('pdk-external-twitter-direct-message', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='twitter', identifier=request_identifier, passive=False, engagement_type='message', start=created)
+            create_engagement_event(source='twitter', identifier=request_identifier, engagement_level=1.0, engagement_type='message', start=created)
 
 
 def import_data(request_identifier, path):

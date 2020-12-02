@@ -24,7 +24,8 @@ def process_watch_history(request_identifier, file_json):
 
         DataPoint.objects.create_data_point('pdk-external-youtube-watch', request_identifier, watch, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='watch', start=created)
+        create_engagement_event(source='youtube', identifier=request_identifier, engagement_level=0.5, engagement_type='watch', start=created)
+
 
 def process_search_history(request_identifier, file_json):
     search_history = json.loads(file_json)
@@ -46,7 +47,8 @@ def process_search_history(request_identifier, file_json):
 
         DataPoint.objects.create_data_point('pdk-external-youtube-search', request_identifier, search, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='search', start=created)
+        create_engagement_event(source='youtube', identifier=request_identifier, engagement_level=1.0, engagement_type='search', start=created)
+
 
 def process_uploads(request_identifier, file_json):
     uploads = json.loads(file_json)
@@ -72,7 +74,8 @@ def process_uploads(request_identifier, file_json):
 
         DataPoint.objects.create_data_point('pdk-external-youtube-upload', request_identifier, upload, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='upload', start=created)
+        create_engagement_event(source='youtube', identifier=request_identifier, engagement_level=1.0, engagement_type='upload', start=created)
+
 
 def process_likes(request_identifier, file_json):
     likes = json.loads(file_json)
@@ -99,7 +102,8 @@ def process_likes(request_identifier, file_json):
 
         DataPoint.objects.create_data_point('pdk-external-youtube-like', request_identifier, like, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='youtube', identifier=request_identifier, passive=False, engagement_type='reaction', start=created)
+        create_engagement_event(source='youtube', identifier=request_identifier, engagement_level=0.5, engagement_type='reaction', start=created)
+
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)
