@@ -1,10 +1,13 @@
 # pylint: disable=no-member,line-too-long
 
+from __future__ import print_function
+
 import json
 
 from django.core.management.base import BaseCommand
 
 from passive_data_kit.decorators import handle_lock
+from passive_data_kit.models import DataPoint, DataSourceReference
 
 from ...models import ExternalDataRequest
 
@@ -25,6 +28,8 @@ class Command(BaseCommand):
         source = ExternalDataRequest.objects.get(pk=options['source_pk'])
         destination = ExternalDataRequest.objects.get(pk=options['destination_pk'])
 
+        print('Updating PDK External Data objects...')
+
         for file_obj in source.data_files.all():
             file_obj.request = destination
             file_obj.save()
@@ -42,5 +47,13 @@ class Command(BaseCommand):
         destination.extras = json.dumps(dest_extras, indent=2)
 
         destination.save()
+
+        print('Updating PDK data objects...')
+
+        source_reference = DataSourceReference.reference_for_source(source.identifier)
+        dest_reference = DataSourceReference.reference_for_source(destination.identifier)
+
+        DataPoint.objects.filter(source_reference=source_reference).update(source_reference=dest_reference)
+        DataPoint.objects.filter(source=source.identifier).update(source=destination.identifier)
 
         source.delete()
