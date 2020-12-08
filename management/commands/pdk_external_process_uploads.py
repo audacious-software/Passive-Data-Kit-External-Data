@@ -27,11 +27,11 @@ class Command(BaseCommand):
 
     @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
-        for data_file in ExternalDataRequestFile.objects.filter(processed=None, skipped=None):
+        for data_file in ExternalDataRequestFile.objects.filter(processed=None, skipped=None)[:10]:
             print('Processing ' + str(data_file.data_file.path) + '...')
 
             if data_file.process() is False:
-                print('Unable to process ' + str(data_file.data_file.path) + '.')
+                print('Unable to process ' + str(data_file.data_file.path) + ' (' + str(data_file.pk) + ').')
 
                 data_file.skipped = timezone.now()
                 data_file.save()

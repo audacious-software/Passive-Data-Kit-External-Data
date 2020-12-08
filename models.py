@@ -174,6 +174,12 @@ class ExternalDataRequestFile(models.Model):
     processed = models.DateTimeField(null=True, blank=True)
     skipped = models.DateTimeField(null=True, blank=True)
 
+    def encrypted(self):
+        if self.data_file is not None:
+            return self.data_file.path.endswith('.encrypted')
+
+        return None
+
     def process(self):
         if self.processed is not None:
             print('Already processed: ' + self.data_file.path)
