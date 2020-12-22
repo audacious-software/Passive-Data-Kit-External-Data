@@ -38,7 +38,7 @@ class Command(BaseCommand):
             cmd_line.append('-k')
             cmd_line.append(settings.PDK_EXTERNAL_CONTENT_SYMETRIC_KEY)
 
-            os.system(' '.join(cmd_line))
+            os.system(' '.join(cmd_line)) # nosec
 
             new_filename = os.path.basename(encrypted_path).replace('.aes-tmp', '.aes')
 
