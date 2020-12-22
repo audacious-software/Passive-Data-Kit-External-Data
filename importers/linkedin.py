@@ -7,7 +7,7 @@ import re
 import traceback
 import zipfile
 
-from io import StringIO
+from io import BytesIO
 
 import arrow
 
@@ -18,7 +18,7 @@ from passive_data_kit.models import DataPoint
 from ..utils import hash_content, encrypt_content, create_engagement_event
 
 def process_follows(request_identifier, follows_raw):
-    file_like = StringIO(follows_raw)
+    file_like = BytesIO(follows_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -37,36 +37,37 @@ def process_follows(request_identifier, follows_raw):
 
 
 def process_connections(request_identifier, connections_raw):
-    file_like = StringIO(connections_raw)
+    file_like = BytesIO(connections_raw)
 
     csv_reader = csv.reader(file_like)
 
     for row in csv_reader:
-        if row[0] != 'First Name':
-            connection_point = {}
+        if len(row) >= 6:
+            if row[0] != 'First Name':
+                connection_point = {}
 
-            created = arrow.get(row[5], 'DD MMM YYYY').to(settings.TIME_ZONE).replace(hour=12, minute=0, second=0).datetime
+                created = arrow.get(row[5], 'DD MMM YYYY').to(settings.TIME_ZONE).replace(hour=12, minute=0, second=0).datetime
 
-            connection_point['pdk_encrypted_first_name'] = encrypt_content(row[0])
-            connection_point['pdk_hashed_first_name'] = hash_content(row[0])
+                connection_point['pdk_encrypted_first_name'] = encrypt_content(row[0])
+                connection_point['pdk_hashed_first_name'] = hash_content(row[0])
 
-            connection_point['pdk_encrypted_last_name'] = encrypt_content(row[1])
-            connection_point['pdk_hashed_last_name'] = hash_content(row[1])
+                connection_point['pdk_encrypted_last_name'] = encrypt_content(row[1])
+                connection_point['pdk_hashed_last_name'] = hash_content(row[1])
 
-            connection_point['pdk_encrypted_email'] = encrypt_content(row[2])
-            connection_point['pdk_hashed_email'] = hash_content(row[2])
+                connection_point['pdk_encrypted_email'] = encrypt_content(row[2])
+                connection_point['pdk_hashed_email'] = hash_content(row[2])
 
-            connection_point['pdk_encrypted_company'] = encrypt_content(row[3])
-            connection_point['pdk_hashed_company'] = hash_content(row[3])
+                connection_point['pdk_encrypted_company'] = encrypt_content(row[3])
+                connection_point['pdk_hashed_company'] = hash_content(row[3])
 
-            connection_point['pdk_encrypted_position'] = encrypt_content(row[4])
-            connection_point['pdk_hashed_position'] = hash_content(row[4])
+                connection_point['pdk_encrypted_position'] = encrypt_content(row[4])
+                connection_point['pdk_hashed_position'] = hash_content(row[4])
 
-            DataPoint.objects.create_data_point('pdk-external-linkedin-connection', request_identifier, connection_point, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-linkedin-connection', request_identifier, connection_point, user_agent='Passive Data Kit External Importer', created=created)
 
 
 def process_contacts(request_identifier, contacts_raw):
-    file_like = StringIO(contacts_raw)
+    file_like = BytesIO(contacts_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -92,7 +93,7 @@ def process_contacts(request_identifier, contacts_raw):
             contact_point['pdk_encrypted_emails'] = encrypt_content(row[5])
             contact_point['pdk_encrypted_phone_numbers'] = encrypt_content(row[6])
 
-            row_io = StringIO()
+            row_io = BytesIO()
             row_csv = csv.writer(row_io)
             row_csv.writerow(row)
 
@@ -102,7 +103,7 @@ def process_contacts(request_identifier, contacts_raw):
 
 
 def process_email_addresses(request_identifier, emails_raw):
-    file_like = StringIO(emails_raw)
+    file_like = BytesIO(emails_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -123,7 +124,7 @@ def process_email_addresses(request_identifier, emails_raw):
 
 
 def process_groups(request_identifier, groups_raw):
-    file_like = StringIO(groups_raw)
+    file_like = BytesIO(groups_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -145,7 +146,7 @@ def process_groups(request_identifier, groups_raw):
 
 
 def process_invitations(request_identifier, invitations_raw):
-    file_like = StringIO(invitations_raw)
+    file_like = BytesIO(invitations_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -170,30 +171,32 @@ def process_invitations(request_identifier, invitations_raw):
 
 
 def process_messages(request_identifier, messages_raw):
-    file_like = StringIO(messages_raw)
+    ''' Updated 12/21/20. Format may be fluid. '''
+
+    file_like = BytesIO(messages_raw)
 
     csv_reader = csv.reader(file_like)
 
     for row in csv_reader:
-        if row[0] != 'FROM':
+        if row[2] != 'FROM':
             message_point = {}
 
-            created = arrow.get(row[2], 'YYYY-MM-DDTHH:mm:ss').to(settings.TIME_ZONE).datetime
+            created = arrow.get(row[5]).to(settings.TIME_ZONE).datetime
 
-            message_point['pdk_encrypted_from'] = encrypt_content(row[0])
-            message_point['pdk_hashed_from'] = hash_content(row[0])
+            message_point['pdk_encrypted_from'] = encrypt_content(row[2])
+            message_point['pdk_hashed_from'] = hash_content(row[2])
 
-            message_point['pdk_encrypted_to'] = encrypt_content(row[1])
-            message_point['pdk_hashed_to'] = hash_content(row[1])
+            message_point['pdk_encrypted_to'] = encrypt_content(row[4])
+            message_point['pdk_hashed_to'] = hash_content(row[4])
 
-            message_point['pdk_encrypted_subject'] = encrypt_content(row[3])
-            message_point['pdk_length_subject'] = len(row[3])
+            message_point['pdk_encrypted_subject'] = encrypt_content(row[6])
+            message_point['pdk_length_subject'] = len(row[6])
 
-            message_point['pdk_encrypted_content'] = encrypt_content(row[4])
-            message_point['pdk_length_content'] = len(row[4])
+            message_point['pdk_encrypted_content'] = encrypt_content(row[7])
+            message_point['pdk_length_content'] = len(row[7])
 
-            message_point['pdk_direction'] = row[5]
-            message_point['pdk_folder'] = row[6]
+            # message_point['pdk_direction'] = row[5]
+            message_point['pdk_folder'] = row[8]
 
             DataPoint.objects.create_data_point('pdk-external-linkedin-message', request_identifier, message_point, user_agent='Passive Data Kit External Importer', created=created)
 
@@ -201,7 +204,7 @@ def process_messages(request_identifier, messages_raw):
 
 
 def process_recommendations_given(request_identifier, recommendations_raw):
-    file_like = StringIO(recommendations_raw)
+    file_like = BytesIO(recommendations_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -235,7 +238,7 @@ def process_recommendations_given(request_identifier, recommendations_raw):
 
 
 def process_recommendations_received(request_identifier, recommendations_raw): # pylint: disable=invalid-name
-    file_like = StringIO(recommendations_raw)
+    file_like = BytesIO(recommendations_raw)
 
     csv_reader = csv.reader(file_like)
 
@@ -267,7 +270,7 @@ def process_recommendations_received(request_identifier, recommendations_raw): #
 
 
 def process_registration(request_identifier, registration_raw):
-    file_like = StringIO(registration_raw)
+    file_like = BytesIO(registration_raw)
 
     csv_reader = csv.reader(file_like)
 

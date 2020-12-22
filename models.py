@@ -176,7 +176,10 @@ class ExternalDataRequestFile(models.Model):
 
     def encrypted(self):
         if self.data_file is not None:
-            return self.data_file.path.endswith('.encrypted')
+            if self.data_file.path.endswith('.encrypted'):
+                return True
+            elif self.data_file.path.endswith('.aes'):
+                return True
 
         return None
 

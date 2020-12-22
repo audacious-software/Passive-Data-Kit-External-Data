@@ -7,10 +7,10 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 def generator_name(identifier): # pylint: disable=unused-argument
-    return 'Facebook Engagement'
+    return 'Tumblr Engagement'
 
 def visualization(source, generator): # pylint: disable=unused-argument
-    filename = settings.MEDIA_ROOT + '/pdk_visualizations/' + source.identifier + '/pdk-external-engagement-facebook/events.json'
+    filename = settings.MEDIA_ROOT + '/pdk_visualizations/' + source.identifier + '/pdk-external-engagement-tumblr/events.json'
 
     with open(filename) as infile:
         data = json.load(infile)
@@ -33,25 +33,18 @@ def compile_visualization(identifier, points, folder): # pylint: disable=unused-
     for point in points:
         engagement_bin = unknown
 
-        metadata = point.fetch_properties()
-
-        if 'engagement_level' in metadata:
-            if metadata['engagement_level'] > 0:
-                engagement_bin = active
-            else:
-                engagement_bin = passive
-        else:
-            if point.secondary_identifier == 'active':
-                engagement_bin = active
-            elif point.secondary_identifier == 'passive':
-                engagement_bin = passive
+        if point.secondary_identifier == 'active':
+            engagement_bin = active
+        elif point.secondary_identifier == 'passive':
+            engagement_bin = passive
 
         timestamp = time.mktime(point.created.timetuple())
 
+        metadata = point.fetch_properties()
+
         engagement_bin.append({
             'timestamp': timestamp,
-            'event': metadata['type'],
-            'level': metadata['engagement_level'],
+            'event': metadata['type']
         })
 
     active.sort(key=lambda item: item['timestamp'])

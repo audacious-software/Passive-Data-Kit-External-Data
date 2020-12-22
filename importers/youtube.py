@@ -9,6 +9,8 @@ import zipfile
 
 import arrow
 
+from django.utils import encoding
+
 from passive_data_kit.models import DataPoint
 from passive_data_kit_external_data.models import annotate_field
 
@@ -35,7 +37,7 @@ def process_search_history(request_identifier, file_json):
 
         search['pdk_encrypted_title'] = encrypt_content(search['title'].encode('utf-8'))
 
-        annotate_field(search['title'], 'title', search['title']['title'])
+        annotate_field(search, 'title', search['title'])
 
         del search['title']
 
@@ -121,7 +123,7 @@ def import_data(request_identifier, path):
             elif re.match(r'^.*\/likes.json', content_file):
                 process_likes(request_identifier, content_bundle.open(content_file).read())
             else:
-                print('[' + request_identifier + ']: Unable to process: ' + content_file)
+                print('[' + request_identifier + ']: Unable to process: ' + encoding.smart_str(content_file, encoding='ascii', errors='xmlcharrefreplace'))
         except: # pylint: disable=bare-except
             traceback.print_exc()
             return False

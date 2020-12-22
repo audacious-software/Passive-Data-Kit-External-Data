@@ -11,17 +11,20 @@ import traceback
 from io import StringIO
 
 import arrow
+import pytz
 
 from django.conf import settings
+from django.db.models import Q
 from django.template.loader import render_to_string
 
-from passive_data_kit.models import DataSourceReference, DataPoint
+from passive_data_kit.models import DataSourceReference, DataPoint, DataGeneratorDefinition
 
 from .models import ExternalDataSource # , ExternalDataRequest
 
 
 CUSTOM_GENERATORS = (
     'pdk-external-events'
+    'pdk-external-engagement'
 )
 
 # https://docs.python.org/2.7/library/csv.html#examples
@@ -32,6 +35,7 @@ class UnicodeWriter: # pylint: disable=old-style-class
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = file_output
         self.encoder = codecs.getincrementalencoder(encoding)()
+
     def writerow(self, row):
         '''writerow(unicode) -> None
         This function takes a Unicode string and encodes it to the output.
@@ -41,14 +45,21 @@ class UnicodeWriter: # pylint: disable=old-style-class
 
         for value in row:
             if isinstance(value, str):
+                print('ENC STR ' + value)
+
+                # encoded_row.append(unicode(value))
+
                 encoded_row.append(value.encode("utf-8"))
             else:
                 encoded_row.append(value)
 
         self.writer.writerow(encoded_row)
+
         data = self.queue.getvalue()
         data = data.decode("utf-8")
+
         data = self.encoder.encode(data)
+
         self.stream.write(data)
         self.queue.truncate(0)
 
@@ -74,6 +85,9 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
             return None
 
         now = arrow.get()
+
+        here_tz = pytz.timezone(settings.TIME_ZONE)
+
         filename = tempfile.gettempdir() + '/pdk_export_' + str(now.timestamp) + str(now.microsecond / 1e6) + '.txt'
 
         if generator == 'pdk-external-events':
@@ -123,8 +137,8 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                 columns = []
 
                                 columns.append(source)
-                                columns.append(point.created.isoformat())
-                                columns.append(point.recorded.isoformat())
+                                columns.append(point.created.astimezone(here_tz).isoformat())
+                                columns.append(point.recorded.astimezone(here_tz).isoformat())
 
                                 metadata = None
 
@@ -173,6 +187,82 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                 writer.writerow(columns)
 
                                 last_seen_created = point.created
+
+                        point_index += 1000
+            return filename
+
+        elif generator == 'pdk-external-engagement':
+            with open(filename, 'w') as outfile:
+                definition_query = None
+
+                for definition in DataGeneratorDefinition.objects.filter(name__startswith='pdk-external-engagement-'):
+                    if definition_query is None:
+                        definition_query = Q(generator_definition=definition)
+                    else:
+                        definition_query = definition_query | Q(generator_definition=definition)
+
+                writer = csv.writer(outfile, delimiter='\t')
+
+                columns = [
+                    'Request ID',
+                    'Date',
+                    'Service',
+                    'Engagement Type',
+                    'Engagement Level',
+                ]
+
+                writer.writerow(columns)
+
+                for source in sources: # pylint: disable=too-many-nested-blocks
+                    source_reference = DataSourceReference.reference_for_source(source)
+
+                    query = DataPoint.objects.filter(source_reference=source_reference).filter(definition_query)
+
+                    if data_start is not None:
+                        if date_type == 'recorded':
+                            query = query.filter(recorded__gte=data_start)
+                        else:
+                            query = query.filter(created__gte=data_start)
+
+                    if data_end is not None:
+                        if date_type == 'recorded':
+                            query = query.filter(recorded__lte=data_end)
+                        else:
+                            query = query.filter(created__lte=data_end)
+
+                    point_count = query.count()
+
+                    point_index = 0
+
+                    last_seen = None
+
+                    while point_index < point_count:
+                        points = query.order_by('created')[point_index:(point_index+1000)]
+
+                        for point in points:
+                            if last_seen is None or point.created > last_seen:
+                                columns = []
+
+                                columns.append(source)
+                                columns.append(point.created.astimezone(here_tz).isoformat())
+
+                                columns.append(point.generator_identifier.replace('pdk-external-engagement-', ''))
+
+                                metadata = point.fetch_properties()
+
+                                if 'type' in metadata:
+                                    columns.append(metadata['type'])
+                                else:
+                                    columns.append('')
+
+                                if 'engagement_level' in metadata:
+                                    columns.append(metadata['engagement_level'])
+                                else:
+                                    columns.append('')
+
+                                writer.writerow(columns)
+
+                                last_seen = point.created
 
                         point_index += 1000
             return filename

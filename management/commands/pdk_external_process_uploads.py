@@ -4,11 +4,13 @@ from __future__ import print_function
 
 import base64
 import os
+import sys
 
 from nacl.public import SealedBox, PublicKey
 
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -27,27 +29,35 @@ class Command(BaseCommand):
 
     @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
-        for data_file in ExternalDataRequestFile.objects.filter(processed=None, skipped=None)[:10]:
-            print('Processing ' + str(data_file.data_file.path) + '...')
+        for data_file in ExternalDataRequestFile.objects.filter(processed=None, skipped=None).order_by('pk')[:1]:
+            print('Processing ' + str(data_file.data_file.path) + ' (' + str(data_file.pk) + ')...')
+            sys.stdout.flush()
 
             if data_file.process() is False:
                 print('Unable to process ' + str(data_file.data_file.path) + ' (' + str(data_file.pk) + ').')
+                sys.stdout.flush()
 
                 data_file.skipped = timezone.now()
                 data_file.save()
+
 
             if options['skip_encryption'] is False:
                 original_path = data_file.data_file.path
 
                 box = SealedBox(PublicKey(base64.b64decode(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY)))
 
-                with open(data_file.data_file.path, 'rb') as original_file:
-                    encrypted_str = box.encrypt(original_file.read())
+                size = os.path.getsize(data_file.data_file.path)
 
-                    filename = os.path.basename(data_file.data_file.path) + '.encrypted'
+                if size < 1024 * 1024 * 1024:
+                    with open(data_file.data_file.path, 'rb') as original_file:
+                        encrypted_str = box.encrypt(original_file.read())
 
-                    encrypted_file = ContentFile(encrypted_str)
+                        filename = os.path.basename(data_file.data_file.path) + '.encrypted'
 
-                    data_file.data_file.save(filename, encrypted_file)
+                        encrypted_file = ContentFile(encrypted_str)
 
-                os.remove(original_path)
+                        data_file.data_file.save(filename, encrypted_file)
+
+                    os.remove(original_path)
+                else:
+                    call_command('pdk_external_aes_encrypt_data_file', str(data_file.pk))
