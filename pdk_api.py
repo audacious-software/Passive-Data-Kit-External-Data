@@ -2,13 +2,10 @@
 
 from __future__ import print_function
 
-import codecs
 import csv
 import importlib
 import tempfile
 import traceback
-
-from io import StringIO
 
 import arrow
 import pytz
@@ -27,45 +24,6 @@ CUSTOM_GENERATORS = (
     'pdk-external-engagement'
 )
 
-# https://docs.python.org/2.7/library/csv.html#examples
-
-class UnicodeWriter: # pylint: disable=old-style-class
-    def __init__(self, file_output, dialect=csv.excel, encoding="utf-8-sig", **kwds):
-        self.queue = StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = file_output
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, row):
-        '''writerow(unicode) -> None
-        This function takes a Unicode string and encodes it to the output.
-        '''
-
-        encoded_row = []
-
-        for value in row:
-            if isinstance(value, str):
-                print('ENC STR ' + value)
-
-                # encoded_row.append(unicode(value))
-
-                encoded_row.append(value.encode("utf-8"))
-            else:
-                encoded_row.append(value)
-
-        self.writer.writerow(encoded_row)
-
-        data = self.queue.getvalue()
-        data = data.decode("utf-8")
-
-        data = self.encoder.encode(data)
-
-        self.stream.write(data)
-        self.queue.truncate(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
 
 def import_external_data(data_source, request_identifier, path):
     try:
@@ -92,7 +50,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
         if generator == 'pdk-external-events':
             with open(filename, 'w') as outfile:
-                writer = UnicodeWriter(outfile, delimiter='\t')
+                writer = csv.writer(outfile, delimiter='\t')
 
                 columns = [
                     'Request ID',
@@ -102,14 +60,33 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                     'Event',
                     'Direction',
                     'Media Type',
+                    'Engagement Score'
                 ]
+
+                annotations = []
+
+                for app in settings.INSTALLED_APPS:
+                    try:
+                        pdk_api = importlib.import_module(app + '.pdk_external_api')
+
+                        try:
+                            annotations.extend(pdk_api.fetch_annotation_fields())
+                        except TypeError as exception:
+                            print('Verify that ' + app + ' implements all external_data_metadata arguments!')
+                            raise exception
+                    except ImportError:
+                        pass
+                    except AttributeError:
+                        pass
+
+                columns.extend(annotations)
 
                 writer.writerow(columns)
 
                 for source in sources: # pylint: disable=too-many-nested-blocks
                     source_reference = DataSourceReference.reference_for_source(source)
 
-                    query = DataPoint.objects.filter(source_reference=source_reference)
+                    query = DataPoint.objects.filter(source_reference=source_reference).exclude(generator_identifier__startswith='pdk-external-engagement-')
 
                     if data_start is not None:
                         if date_type == 'recorded':
@@ -183,6 +160,41 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                     columns.append(point.generator_identifier)
                                     columns.append('')
                                     columns.append('')
+
+                                engagement = DataPoint.objects.filter(source_reference=source_reference, created=point.created, generator_identifier__startswith='pdk-external-engagement-').first()
+
+                                if engagement is not None:
+                                    engagement_metadata = engagement.fetch_properties()
+
+                                    if 'engagement_level' in engagement_metadata:
+                                        columns.append(str(engagement_metadata['engagement_level']))
+                                    else:
+                                        columns.append('')
+                                else:
+                                    columns.append('')
+
+                                annotation_values = {}
+
+                                for app in settings.INSTALLED_APPS:
+                                    try:
+                                        pdk_api = importlib.import_module(app + '.pdk_external_api')
+
+                                        try:
+                                            annotation_values.update(pdk_api.fetch_annotations(point.fetch_properties()))
+                                        except TypeError as exception:
+                                            traceback.print_exc()
+                                            print('Verify that ' + app + ' implements all external_data_metadata arguments!')
+                                            raise exception
+                                    except ImportError:
+                                        pass
+                                    except AttributeError:
+                                        pass
+
+                                for key in annotations:
+                                    if key.lower() in annotation_values:
+                                        columns.append(str(annotation_values[key.lower()]))
+                                    else:
+                                        columns.append('')
 
                                 writer.writerow(columns)
 

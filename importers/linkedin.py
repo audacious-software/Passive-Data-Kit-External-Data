@@ -359,7 +359,11 @@ def external_data_metadata(generator_identifier, point):
 
         properties = point.fetch_properties()
 
-        metadata['direction'] = properties['pdk_direction']
+        if 'pdk_direction' in properties:
+            metadata['direction'] = properties['pdk_direction']
+        else:
+            metadata['direction'] = 'Unknown'
+
         metadata['media_type'] = 'Text'
     elif generator_identifier == 'pdk-external-linkedin-recommendation-given':
         metadata['event'] = 'Recommendation'

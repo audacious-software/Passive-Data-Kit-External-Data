@@ -28,6 +28,38 @@ def annotate_field(container, field_name=None, field_value=None):
             pass
 
 
+def fetch_annotation_fields():
+    fields = []
+
+    for app in settings.INSTALLED_APPS:
+        try:
+            pdk_external_api = importlib.import_module(app + '.pdk_external_api')
+
+            fields.extend(pdk_external_api.fetch_annotation_fields())
+        except ImportError:
+            pass
+        except AttributeError:
+            pass
+
+    return fields
+
+
+def fetch_annotations(properties):
+    annotations = {}
+
+    for app in settings.INSTALLED_APPS:
+        try:
+            pdk_external_api = importlib.import_module(app + '.pdk_external_api')
+
+            annotations.update(pdk_external_api.fetch_annotations(properties))
+        except ImportError:
+            pass
+        except AttributeError:
+            pass
+
+    return annotations
+
+
 class ExternalDataSource(models.Model):
     name = models.CharField(max_length=1024)
     identifier = models.SlugField(max_length=1024, unique=True)
