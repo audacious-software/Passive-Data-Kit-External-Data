@@ -178,10 +178,20 @@ def process_messages(request_identifier, messages_raw):
     csv_reader = csv.reader(file_like)
 
     for row in csv_reader:
-        if row[2] != 'FROM':
+        if row[2] != 'FROM' and row[5] != 'DIRECTION':
             message_point = {}
 
-            created = arrow.get(row[5]).to(settings.TIME_ZONE).datetime
+            created = None
+
+            try:
+                created = arrow.get(row[5]).to(settings.TIME_ZONE).datetime
+            except arrow.parser.ParserError:
+                try:
+                    created = arrow.get(row[5], 'YYYY-MM-DD HH:mm:ss ZZZ').to(settings.TIME_ZONE).datetime
+                except arrow.parser.ParserError:
+                    print('Invalid LinkedIn messages file: ' + request_identifier)
+
+                    return
 
             message_point['pdk_encrypted_from'] = encrypt_content(row[2])
             message_point['pdk_hashed_from'] = hash_content(row[2])
