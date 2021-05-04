@@ -44,11 +44,11 @@ class Command(BaseCommand):
             os.system(' '.join(cmd_line)) # nosec
 
             new_filename = os.path.basename(decrypted_path).replace('.tmp', '')
-            
+
             print(new_filename)
 
             data_file.data_file.save(new_filename, File(open(decrypted_path)))
-            
+
             data_file.processed = None
             data_file.skipped = None
             data_file.save()

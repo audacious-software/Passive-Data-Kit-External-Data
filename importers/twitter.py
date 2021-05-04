@@ -147,12 +147,12 @@ def process_ad_impressions(request_identifier, ads_raw):
 
             create_engagement_event(source='twitter', identifier=request_identifier, engagement_type='advertising', start=created)
 
-def import_data(request_identifier, path):
+def import_data(request_identifier, path): # pylint: disable=too-many-branches
     content_bundle = zipfile.ZipFile(path)
 
     for content_file in content_bundle.namelist():
         filename_tokens = content_file.split('/')
-        
+
         try:
             if content_file.endswith('/'):
                 pass
