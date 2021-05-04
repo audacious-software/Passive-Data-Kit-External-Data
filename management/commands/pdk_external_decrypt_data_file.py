@@ -40,9 +40,9 @@ class Command(BaseCommand):
         query = ExternalDataRequestFile.objects.filter(pk=options['file_pk'])
 
         if options['file_pk'] < 0:
-            query = ExternalDataRequestFile.objects.all()
+            query = ExternalDataRequestFile.objects.filter(pk__gte=(0 - options['file_pk']))
 
-        for data_file in query.exclude(processed=None, skipped=None).order_by('-pk'):
+        for data_file in query.exclude(processed=None, skipped=None).order_by('pk'):
             box = SealedBox(PrivateKey(base64.b64decode(options['key'])))
 
             original_path = data_file.data_file.path

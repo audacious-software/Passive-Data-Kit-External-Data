@@ -28,21 +28,30 @@ class Command(BaseCommand):
         for data_file in query.order_by('-pk'):
             original_path = data_file.data_file.path
 
-            encrypted_path = data_file.data_file.path + '.aes-tmp'
+            decrypted_path = data_file.data_file.path.replace('.aes', '') + '.tmp'
 
-            cmd_line = 'openssl enc -aes-256-cbc -in'.split(' ')
+            cmd_line = 'openssl enc -d -aes-256-cbc -in'.split(' ')
 
             cmd_line.append(original_path)
             cmd_line.append('-out')
-            cmd_line.append(encrypted_path)
+            cmd_line.append(decrypted_path)
             cmd_line.append('-k')
             cmd_line.append(settings.PDK_EXTERNAL_CONTENT_SYMETRIC_KEY)
 
+            print(original_path)
+            print(decrypted_path)
+
             os.system(' '.join(cmd_line)) # nosec
 
-            new_filename = os.path.basename(encrypted_path).replace('.aes-tmp', '.aes')
+            new_filename = os.path.basename(decrypted_path).replace('.tmp', '')
+            
+            print(new_filename)
 
-            data_file.data_file.save(new_filename, File(open(encrypted_path)))
+            data_file.data_file.save(new_filename, File(open(decrypted_path)))
+            
+            data_file.processed = None
+            data_file.skipped = None
+            data_file.save()
 
             os.remove(original_path)
-            os.remove(encrypted_path)
+            os.remove(decrypted_path)

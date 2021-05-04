@@ -58,9 +58,10 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                     'Date Recorded',
                     'Service',
                     'Event',
-                    'Direction',
                     'Media Type',
-                    'Engagement Score'
+                    'Direction',
+                    'Outgoing Engagement Score',
+                    'Incoming Engagement Score',
                 ]
 
                 annotations = []
@@ -114,8 +115,8 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                 columns = []
 
                                 columns.append(source)
-                                columns.append(point.created.astimezone(here_tz).isoformat())
-                                columns.append(point.recorded.astimezone(here_tz).isoformat())
+                                columns.append(point.created.astimezone(here_tz).strftime("%Y-%m-%d %H:%M:%S"))
+                                columns.append(point.recorded.astimezone(here_tz).strftime("%Y-%m-%d %H:%M:%S"))
 
                                 metadata = None
 
@@ -146,13 +147,8 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                     else:
                                         columns.append(point.generator_identifier)
 
-                                    if 'direction' in metadata:
-                                        columns.append(metadata['direction'])
-                                    else:
-                                        columns.append('')
-
                                     if 'media_type' in metadata:
-                                        columns.append(metadata['media_type'])
+                                        columns.append(metadata['media_type'].lower())
                                     else:
                                         columns.append('')
                                 else:
@@ -166,11 +162,22 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                 if engagement is not None:
                                     engagement_metadata = engagement.fetch_properties()
 
-                                    if 'engagement_level' in engagement_metadata:
-                                        columns.append(str(engagement_metadata['engagement_level']))
+                                    if 'engagement_direction' in engagement_metadata:
+                                        columns.append(engagement_metadata['engagement_direction'])
+                                    else:
+                                        columns.append('')
+
+                                    if 'outgoing_engagement' in engagement_metadata:
+                                        columns.append(str(engagement_metadata['outgoing_engagement']))
+                                    else:
+                                        columns.append('')
+
+                                    if 'incoming_engagement' in engagement_metadata:
+                                        columns.append(str(engagement_metadata['incoming_engagement']))
                                     else:
                                         columns.append('')
                                 else:
+                                    columns.append('')
                                     columns.append('')
 
                                 annotation_values = {}
@@ -220,7 +227,9 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                     'Date',
                     'Service',
                     'Engagement Type',
-                    'Engagement Level',
+                    'Direction',
+                    'Outgoing Engagement',
+                    'Incoming Engagement',
                 ]
 
                 writer.writerow(columns)
@@ -256,19 +265,29 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                                 columns = []
 
                                 columns.append(source)
-                                columns.append(point.created.astimezone(here_tz).isoformat())
+                                columns.append(point.created.astimezone(here_tz).strftime("%Y-%m-%d %H:%M:%S"))
 
                                 columns.append(point.generator_identifier.replace('pdk-external-engagement-', ''))
 
                                 metadata = point.fetch_properties()
 
                                 if 'type' in metadata:
-                                    columns.append(metadata['type'])
+                                    columns.append(metadata['type'].lower())
                                 else:
                                     columns.append('')
 
-                                if 'engagement_level' in metadata:
-                                    columns.append(metadata['engagement_level'])
+                                if 'engagement_direction' in metadata:
+                                    columns.append(metadata['engagement_direction'])
+                                else:
+                                    columns.append('')
+
+                                if 'outgoing_engagement' in metadata:
+                                    columns.append(metadata['outgoing_engagement'])
+                                else:
+                                    columns.append('')
+
+                                if 'incoming_engagement' in metadata:
+                                    columns.append(metadata['incoming_engagement'])
                                 else:
                                     columns.append('')
 

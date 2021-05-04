@@ -33,17 +33,20 @@ def secret_decrypt_content(cleartext):
 
     return box.decrypt(base64.b64decode(cleartext))
 
-def create_engagement_event(source, identifier, start, engagement_level, engagement_type='unknown', duration=0): # pylint: disable=too-many-arguments
+def create_engagement_event(source, identifier, start, outgoing_engagement=0, incoming_engagement=0, engagement_type='unknown', duration=0): # pylint: disable=too-many-arguments
     metadata = {
         'type': engagement_type,
         'duration': duration,
-        'engagement_level': engagement_level,
+        'outgoing_engagement': outgoing_engagement,
+        'incoming_engagement': incoming_engagement,
     }
 
     point = DataPoint.objects.create_data_point('pdk-external-engagement-' + source, identifier, metadata, user_agent='Passive Data Kit External Importer', created=start)
 
-    if engagement_level > 0:
+    if outgoing_engagement > 0:
         point.secondary_identifier = 'active'
+    elif incoming_engagement > 0:
+        point.secondary_identifier = 'incoming active'
     else:
         point.secondary_identifier = 'passive'
 

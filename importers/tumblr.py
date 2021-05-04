@@ -35,7 +35,7 @@ def process_unfollows(request_identifier, unfollows):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-unfollow', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=1.0, engagement_type='follow', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='follow', start=created)
 
 
 def process_ads_served(request_identifier, ads_served):
@@ -55,7 +55,7 @@ def process_ads_served(request_identifier, ads_served):
 
             DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='ad-view', start=created)
+            create_engagement_event(source='tumblr', identifier=request_identifier, engagement_type='ad-view', start=created)
 
         except arrow.parser.ParserError:
             print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
@@ -70,7 +70,7 @@ def process_active_times(request_identifier, active_times):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-active-time', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=1.0, engagement_type='active-time', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='active-time', start=created)
 
 def process_api_applications_used(request_identifier, api_applications_used):
     for item in api_applications_used:
@@ -78,7 +78,7 @@ def process_api_applications_used(request_identifier, api_applications_used):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-api-session', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='api-session', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_type='api-session', start=created)
 
 def process_push_notifications(request_identifier, notifications):
     for item in notifications:
@@ -98,7 +98,7 @@ def process_push_notifications(request_identifier, notifications):
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-open', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='notification-open', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, incoming_engagement=1.0, engagement_type='notification-open', start=created)
 
 def process_push_notification_settings(request_identifier, settings): # pylint: disable=invalid-name
     for item in settings:
@@ -106,7 +106,69 @@ def process_push_notification_settings(request_identifier, settings): # pylint: 
 
         DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-setting', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='tumblr', identifier=request_identifier, engagement_level=0.0, engagement_type='notification-setting', start=created)
+        create_engagement_event(source='tumblr', identifier=request_identifier, incoming_engagement=1.0, engagement_type='notification-setting', start=created)
+
+def process_gemini_analytics(request_identifier, ads_served):
+    for item in ads_served:
+        pdk_item = {
+            'pdk_hashed_placement_id': hash_content(item['placement_id']),
+            'pdk_encrypted_placement_id': encrypt_content(item['placement_id'].encode('utf-8')),
+            'serve_time': item['serve_time'],
+            'viewed': item['viewed'],
+            'interacted': item['interacted'],
+        }
+
+        try:
+            created = arrow.get(item['serve_time']).datetime
+
+            DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='tumblr', identifier=request_identifier, engagement_type='ad-view', start=created)
+
+        except arrow.parser.ParserError:
+            print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
+
+def process_client_side_ad_analytics(request_identifier, ads_served): # pylint: disable=invalid-name
+    for item in ads_served:
+        pdk_item = {
+            'pdk_hashed_placement_id': hash_content(item['placement_id']),
+            'pdk_encrypted_placement_id': encrypt_content(item['placement_id'].encode('utf-8')),
+            'ad_type': item['ad_type'],
+            'serve_time': item['serve_time'],
+            'viewed': item['viewed'],
+            'interacted': item['interacted'],
+        }
+
+        try:
+            created = arrow.get(item['serve_time']).datetime
+
+            DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='tumblr', identifier=request_identifier, engagement_type='ad-view', start=created)
+
+        except arrow.parser.ParserError:
+            print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
+
+def process_explore_takeover_analytics(request_identifier, ads_served): # pylint: disable=invalid-name
+    for item in ads_served:
+        pdk_item = {
+            'pdk_hashed_post_url': hash_content(item['post_url']),
+            'pdk_encrypted_post_url': encrypt_content(item['post_url'].encode('utf-8')),
+            'tracked_unit': item['tracked_unit'],
+            'serve_time': item['serve_time'],
+            'viewed': item['viewed'],
+            'interacted': item['interacted'],
+        }
+
+        try:
+            created = arrow.get(item['serve_time']).datetime
+
+            DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='tumblr', identifier=request_identifier, engagement_type='ad-view', start=created)
+
+        except arrow.parser.ParserError:
+            print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
 
 def process_payload(request_identifier, payload_json):
     payloads = json.loads(payload_json)
@@ -135,6 +197,14 @@ def process_payload(request_identifier, payload_json):
         if 'push_notification_settings' in data:
             process_push_notification_settings(request_identifier, data['push_notification_settings'])
 
+        if 'gemini_analytics' in data:
+            process_gemini_analytics(request_identifier, data['gemini_analytics'])
+
+        if 'client_side_ad_analytics' in data:
+            process_client_side_ad_analytics(request_identifier, data['client_side_ad_analytics'])
+
+        if 'explore_takeover_analytics' in data:
+            process_explore_takeover_analytics(request_identifier, data['explore_takeover_analytics'])
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)

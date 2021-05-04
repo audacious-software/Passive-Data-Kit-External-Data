@@ -29,6 +29,8 @@ def process_chat_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-chat-received', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, engagement_type='message', start=created)
+
     for message in chat_history['Sent Chat History']:
         pdk_message = {
             'pdk_hashed_to': hash_content(message['To'].encode('utf-8')),
@@ -42,7 +44,7 @@ def process_chat_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-chat-sent', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='message', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='message', start=created)
 
 
 def process_memories_history(request_identifier, json_string):
@@ -61,37 +63,38 @@ def process_memories_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-memory-history', request_identifier, pdk_media, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='memory', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='memory', start=created)
 
 
 def process_shared_story(request_identifier, json_string):
     shared_story = json.loads(json_string)
+    
+    if 'Shared Story' in shared_story:
+		for story in shared_story['Shared Story']:
+			pdk_story = {
+				'pdk_hashed_story_id': hash_content(story['Story Id'].encode('utf-8')),
+				'pdk_encrypted_story_id': encrypt_content(story['Story Id'].encode('utf-8')),
+				'pdk_length_story_id': len(story['Story Id']),
+				'status': story['Status'],
+				'create_time': story['Created'],
+				'content': [],
+			}
 
-    for story in shared_story['Shared Story']:
-        pdk_story = {
-            'pdk_hashed_story_id': hash_content(story['Story Id'].encode('utf-8')),
-            'pdk_encrypted_story_id': encrypt_content(story['Story Id'].encode('utf-8')),
-            'pdk_length_story_id': len(story['Story Id']),
-            'status': story['Status'],
-            'create_time': story['Created'],
-            'content': [],
-        }
+			for item in story['Content']:
+				content_obj = {
+					'pdk_hashed_item': hash_content(item),
+					'pdk_encrypted_item': encrypt_content(item.encode('utf-8')),
+					'pdk_length_item': len(item),
+					'item_extension': item.split('.')[-1],
+				}
 
-        for item in story['Content']:
-            content_obj = {
-                'pdk_hashed_item': hash_content(item),
-                'pdk_encrypted_item': encrypt_content(item.encode('utf-8')),
-                'pdk_length_item': len(item),
-                'item_extension': item.split('.')[-1],
-            }
+				pdk_story['content'].append(content_obj)
 
-            pdk_story['content'].append(content_obj)
+			created = arrow.get(story['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-        created = arrow.get(story['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+			DataPoint.objects.create_data_point('pdk-external-snapchat-shared-story', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
 
-        DataPoint.objects.create_data_point('pdk-external-snapchat-shared-story', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
-
-        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='share', start=created)
+			create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='share', start=created)
 
 
 def process_snap_history(request_identifier, json_string):
@@ -110,6 +113,8 @@ def process_snap_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-snap-received', request_identifier, pdk_snap, user_agent='Passive Data Kit External Importer', created=created)
 
+        create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, engagement_type='message', start=created)
+
     for snap in snap_history['Sent Snap History']:
         pdk_snap = {
             'pdk_hashed_to': hash_content(snap['To'].encode('utf-8')),
@@ -123,7 +128,7 @@ def process_snap_history(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-snap-sent', request_identifier, pdk_snap, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='message', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='message', start=created)
 
 
 def process_support_notes(request_identifier, json_string):
@@ -146,7 +151,7 @@ def process_support_notes(request_identifier, json_string):
 
             DataPoint.objects.create_data_point('pdk-external-snapchat-support-note', request_identifier, pdk_note, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='support', start=created)
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='support', start=created)
 
 
 def process_account_events(request_identifier, json_string):
@@ -166,8 +171,36 @@ def process_account_events(request_identifier, json_string):
 
         DataPoint.objects.create_data_point('pdk-external-snapchat-login', request_identifier, pdk_login, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='snapchat', identifier=request_identifier, engagement_level=1.0, engagement_type='login', start=created)
+        create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='login', start=created)
 
+def process_story_history(request_identifier, json_string):
+    story_history = json.loads(json_string)
+
+    if 'Your Story Views' in story_history:
+        for view in story_history['Your Story Views']:
+            if 'View' in view:
+                view['pdk_hashed_viewer'] = hash_content(view['View'])
+
+                del view['View']
+
+                created = arrow.get(view['View Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+
+                DataPoint.objects.create_data_point('pdk-external-snapchat-story-view', request_identifier, view, user_agent='Passive Data Kit External Importer', created=created)
+
+                create_engagement_event(source='snapchat', identifier=request_identifier, engagement_type='story-view', start=created)
+
+    if 'Friend and Public Story Views' in story_history:
+        for view in story_history['Friend and Public Story Views']:
+            if 'View' in view:
+                view['pdk_hashed_viewer'] = hash_content(view['View'])
+
+                del view['View']
+
+                created = arrow.get(view['View Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+
+                DataPoint.objects.create_data_point('pdk-external-snapchat-story-view', request_identifier, view, user_agent='Passive Data Kit External Importer', created=created)
+
+                create_engagement_event(source='snapchat', identifier=request_identifier, engagement_type='story-view', start=created)
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)
@@ -188,6 +221,8 @@ def import_data(request_identifier, path):
                 process_snap_history(request_identifier, content_bundle.open(content_file).read())
             elif re.match(r'.*\/support_note\.json$', content_file):
                 process_support_notes(request_identifier, content_bundle.open(content_file).read())
+            elif re.match(r'.*\/story_history\.json$', content_file):
+                process_story_history(request_identifier, content_bundle.open(content_file).read())
             else:
                 print('[' + request_identifier + ']: Unable to process: ' + content_file)
         except: # pylint: disable=bare-except

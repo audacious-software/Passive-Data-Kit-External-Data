@@ -34,7 +34,7 @@ def process_likes(request_identifier, likes_raw):
 
         DataPoint.objects.create_data_point('pdk-external-twitter-like', request_identifier, pdk_like, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='twitter', identifier=request_identifier, engagement_level=0.5, engagement_type='reaction', start=created)
+        create_engagement_event(source='twitter', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
 
 
 def process_tweets(request_identifier, tweets_raw):
@@ -79,55 +79,103 @@ def process_tweets(request_identifier, tweets_raw):
 
         DataPoint.objects.create_data_point('pdk-external-twitter-tweet', request_identifier, tweet, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='twitter', identifier=request_identifier, engagement_level=1.0, engagement_type='post', start=created)
-
+        create_engagement_event(source='twitter', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='post', start=created)
 
 def process_direct_messages(request_identifier, messages_raw):
     messages_raw = messages_raw.replace('window.YTD.direct_message.part0 = ', '')
+    messages_raw = messages_raw.replace('window.YTD.direct_messages.part0 = ', '')
 
     conversations = json.loads(messages_raw)
 
+    my_ids = []
+
     for conversation in conversations:
-        for message in conversation['dmConversation']['messages']:
-            msg_data = message['messageCreate']
+        if len(my_ids) != 1:
+            tokens = conversation['dmConversation']['conversationId'].split('-')
 
-            pdk_message = {
-                'pdk_hashed_recipientId': hash_content(msg_data['recipientId']),
-                'pdk_encrypted_recipientId': encrypt_content(msg_data['recipientId'].encode('utf-8')),
-                'pdk_hashed_senderId': hash_content(msg_data['senderId']),
-                'pdk_encrypted_senderId': encrypt_content(msg_data['senderId'].encode('utf-8')),
-                'pdk_encrypted_text': encrypt_content(msg_data['text'].encode('utf-8')),
-                'id': msg_data['id'],
-                'conversationId': conversation['dmConversation']['conversationId'],
-                'createdAt': msg_data['createdAt']
-            }
+            if len(my_ids) == 0: # pylint: disable=len-as-condition
+                my_ids = tokens
+            else:
+                my_ids = list(set().union(my_ids, tokens))
 
-            annotate_field(pdk_message, 'text', msg_data['text'])
+    if len(my_ids) > 0: # pylint: disable=len-as-condition
+        my_id = my_ids[0]
 
-            if msg_data['mediaUrls']:
-                media_urls_str = json.dumps(msg_data['mediaUrls'], indent=2)
-                pdk_message['pdk_encrypted_mediaUrls'] = encrypt_content(media_urls_str.encode('utf-8'))
+        for conversation in conversations:
+            for message in conversation['dmConversation']['messages']:
+                msg_data = message['messageCreate']
 
-            created = arrow.get(msg_data['createdAt']).datetime
+                pdk_message = {
+                    'pdk_hashed_recipientId': hash_content(msg_data['recipientId']),
+                    'pdk_encrypted_recipientId': encrypt_content(msg_data['recipientId'].encode('utf-8')),
+                    'pdk_hashed_senderId': hash_content(msg_data['senderId']),
+                    'pdk_encrypted_senderId': encrypt_content(msg_data['senderId'].encode('utf-8')),
+                    'pdk_encrypted_text': encrypt_content(msg_data['text'].encode('utf-8')),
+                    'id': msg_data['id'],
+                    'conversationId': conversation['dmConversation']['conversationId'],
+                    'createdAt': msg_data['createdAt']
+                }
 
-            DataPoint.objects.create_data_point('pdk-external-twitter-direct-message', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
+                annotate_field(pdk_message, 'text', msg_data['text'])
 
-            create_engagement_event(source='twitter', identifier=request_identifier, engagement_level=1.0, engagement_type='message', start=created)
+                if msg_data['mediaUrls']:
+                    media_urls_str = json.dumps(msg_data['mediaUrls'], indent=2)
+                    pdk_message['pdk_encrypted_mediaUrls'] = encrypt_content(media_urls_str.encode('utf-8'))
 
+                created = arrow.get(msg_data['createdAt']).datetime
+
+                DataPoint.objects.create_data_point('pdk-external-twitter-direct-message', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
+
+                if my_id == msg_data['senderId']:
+                    create_engagement_event(source='twitter', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='message', start=created)
+                else:
+                    create_engagement_event(source='twitter', identifier=request_identifier, incoming_engagement=1.0, engagement_type='message', start=created)
+
+def process_ad_impressions(request_identifier, ads_raw):
+    ads_raw = ads_raw.replace('window.YTD.ad_impressions.part0 = ', '')
+
+    ads = json.loads(ads_raw)
+
+    for ad_view in ads:
+        for impression in ad_view['ad']['adsUserData']['adImpressions']['impressions']:
+            created = arrow.get(impression['impressionTime']).datetime
+
+            if 'promotedTweetInfo' in impression:
+                annotate_field(impression, 'tweet_text', impression['promotedTweetInfo']['tweetText'])
+
+            DataPoint.objects.create_data_point('pdk-external-twitter-ad-viewed', request_identifier, impression, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='twitter', identifier=request_identifier, engagement_type='advertising', start=created)
 
 def import_data(request_identifier, path):
     content_bundle = zipfile.ZipFile(path)
 
     for content_file in content_bundle.namelist():
+        filename_tokens = content_file.split('/')
+        
         try:
             if content_file.endswith('/'):
                 pass
-            elif re.match(r'^direct-message\.js', content_file):
+            elif '.i18n.' in content_file:
+                pass
+            elif content_file.endswith('.png'):
+                pass
+            elif content_file.endswith('.svg'):
+                pass
+            elif content_file.endswith('.jpg'):
+                pass
+            elif content_file.endswith('.mp4'):
+                pass
+            elif re.match(r'^direct-message\.js', filename_tokens[-1]):
                 process_direct_messages(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^like\.js', content_file):
-                process_likes(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^tweet\.js', content_file):
+            elif re.match(r'^direct-messages\.js', filename_tokens[-1]):
+                process_direct_messages(request_identifier, content_bundle.open(content_file).read())
+            # elif re.match(r'^like\.js', filename_tokens[-1]):
+            #    process_likes(request_identifier, content_bundle.open(content_file).read())
+            elif re.match(r'^tweet\.js', filename_tokens[-1]):
                 process_tweets(request_identifier, content_bundle.open(content_file).read())
+            elif re.match(r'^ad-impressions\.js', filename_tokens[-1]):
+                process_ad_impressions(request_identifier, content_bundle.open(content_file).read())
             else:
                 print('[' + request_identifier + ']: Unable to process: ' + content_file)
         except: # pylint: disable=bare-except
