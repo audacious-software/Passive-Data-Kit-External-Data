@@ -72,104 +72,105 @@ def process_posts(request_identifier, posts_raw): # pylint: disable=too-many-bra
     for post in posts: # pylint: disable=too-many-nested-blocks
         post = copy.deepcopy(post)
 
-        created = arrow.get(post['timestamp']).datetime
+        if isinstance(post, dict):
+            created = arrow.get(post['timestamp']).datetime
 
-        if 'title' in post:
-            post['pdk_encrypted_title'] = encrypt_content(post['title'].encode('utf-8'))
+            if 'title' in post:
+                post['pdk_encrypted_title'] = encrypt_content(post['title'].encode('utf-8'))
 
-            annotate_field(post, 'title', post['title'])
+                annotate_field(post, 'title', post['title'])
 
-            del post['title']
+                del post['title']
 
-        if 'data' in post:
-            for datum in post['data']:
-                if 'post' in datum:
-                    datum['pdk_encrypted_post'] = encrypt_content(datum['post'].encode('utf-8'))
+            if 'data' in post:
+                for datum in post['data']:
+                    if 'post' in datum:
+                        datum['pdk_encrypted_post'] = encrypt_content(datum['post'].encode('utf-8'))
 
-                    annotate_field(datum, 'post', datum['post'])
+                        annotate_field(datum, 'post', datum['post'])
 
-                    del datum['post']
+                        del datum['post']
 
-        if 'attachments' in post:
-            for attachment in post['attachments']:
-                if 'data' in attachment:
-                    for datum in attachment['data']:
-                        if 'event' in datum:
-                            event = datum['event']
+            if 'attachments' in post:
+                for attachment in post['attachments']:
+                    if 'data' in attachment:
+                        for datum in attachment['data']:
+                            if 'event' in datum:
+                                event = datum['event']
 
-                            if 'name' in event:
-                                event['pdk_encrypted_name'] = encrypt_content(event['name'].encode('utf-8'))
+                                if 'name' in event:
+                                    event['pdk_encrypted_name'] = encrypt_content(event['name'].encode('utf-8'))
 
-                                annotate_field(event, 'name', event['name'])
+                                    annotate_field(event, 'name', event['name'])
 
-                                del event['name']
+                                    del event['name']
 
-                            if 'description' in event:
-                                event['pdk_encrypted_description'] = encrypt_content(event['description'].encode('utf-8'))
+                                if 'description' in event:
+                                    event['pdk_encrypted_description'] = encrypt_content(event['description'].encode('utf-8'))
 
-                                annotate_field(event, 'description', event['description'])
+                                    annotate_field(event, 'description', event['description'])
 
-                                del event['description']
+                                    del event['description']
 
-                            if 'place' in event:
-                                place_str = json.dumps(event['place'], indent=2)
-                                event['pdk_encrypted_place'] = encrypt_content(place_str.encode('utf-8'))
+                                if 'place' in event:
+                                    place_str = json.dumps(event['place'], indent=2)
+                                    event['pdk_encrypted_place'] = encrypt_content(place_str.encode('utf-8'))
 
-                                annotate_field(event, 'place', place_str)
+                                    annotate_field(event, 'place', place_str)
 
-                                del event['place']
+                                    del event['place']
 
-                        if 'external_context' in datum:
-                            external_context = datum['external_context']
+                            if 'external_context' in datum:
+                                external_context = datum['external_context']
 
-                            if 'url' in external_context:
-                                external_context['pdk_encrypted_url'] = encrypt_content(external_context['url'].encode('utf-8'))
+                                if 'url' in external_context:
+                                    external_context['pdk_encrypted_url'] = encrypt_content(external_context['url'].encode('utf-8'))
 
-                                annotate_field(external_context, 'url', external_context['url'])
+                                    annotate_field(external_context, 'url', external_context['url'])
 
-                                del external_context['url']
+                                    del external_context['url']
 
-                        if 'media' in datum:
-                            media = datum['media']
+                            if 'media' in datum:
+                                media = datum['media']
 
-                            if 'title' in media:
-                                media['pdk_encrypted_title'] = encrypt_content(media['title'].encode('utf-8'))
+                                if 'title' in media:
+                                    media['pdk_encrypted_title'] = encrypt_content(media['title'].encode('utf-8'))
 
-                                annotate_field(media, 'title', media['title'])
+                                    annotate_field(media, 'title', media['title'])
 
-                                del media['title']
+                                    del media['title']
 
-                            if 'description' in media:
-                                media['pdk_encrypted_description'] = encrypt_content(media['description'].encode('utf-8'))
+                                if 'description' in media:
+                                    media['pdk_encrypted_description'] = encrypt_content(media['description'].encode('utf-8'))
 
-                                annotate_field(media, 'description', media['description'])
+                                    annotate_field(media, 'description', media['description'])
 
-                                del media['description']
+                                    del media['description']
 
-                            if 'uri' in media:
-                                media['pdk_encrypted_uri'] = encrypt_content(media['uri'].encode('utf-8'))
+                                if 'uri' in media:
+                                    media['pdk_encrypted_uri'] = encrypt_content(media['uri'].encode('utf-8'))
 
-                                annotate_field(media, 'uri', media['uri'])
+                                    annotate_field(media, 'uri', media['uri'])
 
-                                del media['uri']
+                                    del media['uri']
 
-                            if 'media_metadata' in media:
-                                metadata_str = json.dumps(media['media_metadata'], indent=2)
-                                media['pdk_encrypted_media_metadata'] = encrypt_content(metadata_str.encode('utf-8'))
+                                if 'media_metadata' in media:
+                                    metadata_str = json.dumps(media['media_metadata'], indent=2)
+                                    media['pdk_encrypted_media_metadata'] = encrypt_content(metadata_str.encode('utf-8'))
 
-                                del media['media_metadata']
+                                    del media['media_metadata']
 
-                        if 'place' in datum:
-                            place_str = json.dumps(datum['place'], indent=2)
-                            datum['pdk_encrypted_place'] = encrypt_content(place_str.encode('utf-8'))
+                            if 'place' in datum:
+                                place_str = json.dumps(datum['place'], indent=2)
+                                datum['pdk_encrypted_place'] = encrypt_content(place_str.encode('utf-8'))
 
-                            del datum['place']
+                                del datum['place']
 
-        post['pdk_facebook_source'] = source
+            post['pdk_facebook_source'] = source
 
-        DataPoint.objects.create_data_point('pdk-external-facebook-post', request_identifier, post, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-facebook-post', request_identifier, post, user_agent='Passive Data Kit External Importer', created=created)
 
-        create_engagement_event(source='facebook', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='post', start=created)
+            create_engagement_event(source='facebook', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='post', start=created)
 
 
 def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-branches, too-many-statements
@@ -289,10 +290,11 @@ def process_viewed(request_identifier, viewed_raw): # pylint: disable=too-many-b
             for entry in thing['entries']:
                 created = arrow.get(entry['timestamp']).datetime
 
-                entry['data']['pdk_encrypted_uri'] = encrypt_content(entry['data']['uri'].encode('utf-8'))
-                entry['data']['pdk_hashed_uri'] = hash_content(entry['data']['uri'].encode('utf-8'))
+                if 'uri' in entry['data']:
+                    entry['data']['pdk_encrypted_uri'] = encrypt_content(entry['data']['uri'].encode('utf-8'))
+                    entry['data']['pdk_hashed_uri'] = hash_content(entry['data']['uri'].encode('utf-8'))
 
-                del entry['data']['uri']
+                    del entry['data']['uri']
 
                 entry['data']['pdk_encrypted_name'] = encrypt_content(entry['data']['name'].encode('utf-8'))
                 entry['data']['pdk_hashed_name'] = hash_content(entry['data']['name'].encode('utf-8'))
