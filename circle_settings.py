@@ -65,8 +65,8 @@ WSGI_APPLICATION = 'pdk.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE':   'django.contrib.gis.db.backends.postgis',
-        'NAME':     'travisci',
-        'USER':     'postgres',
+        'NAME':     'circle_test',
+        'USER':     'root',
         'PASSWORD': '',
         'HOST':     'localhost',
         'PORT':     '',
