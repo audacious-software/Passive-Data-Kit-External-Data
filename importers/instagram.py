@@ -252,3 +252,29 @@ def external_data_metadata(generator_identifier, point): # pylint: disable=unuse
         metadata['media_type'] = 'Video'
 
     return metadata
+
+def update_data_type_definition(definition):
+    if 'pdk-external-instagram-photo' in definition['passive-data-metadata.generator-id']['observed']:
+        if 'pdk_encrypted_caption' in definition:
+            del definition['pdk_encrypted_caption']['observed']
+
+            definition['pdk_encrypted_caption']['is_freetext'] = True
+
+            definition['pdk_encrypted_caption']['pdk_variable_name'] = 'Encrypted photo caption'
+            definition['pdk_encrypted_caption']['pdk_variable_description'] = 'Encrypted caption of the photo, saved for use later (with proper authorizations and keys).'
+
+        if 'taken_at' in definition:
+            del definition['taken_at']['observed']
+
+            definition['taken_at']['is_freetext'] = False
+
+            definition['taken_at']['pdk_variable_name'] = 'Photo capture timestamp'
+            definition['taken_at']['pdk_variable_description'] = 'ISO-8601 timestamp of the time the photo was originally taken.'
+
+        if 'path' in definition:
+            del definition['path']['observed']
+
+            definition['path']['is_freetext'] = False
+
+            definition['path']['pdk_variable_name'] = 'Photo path in export file'
+            definition['path']['pdk_variable_description'] = 'File path of the photo file in the uploaded Instagram data export.'
