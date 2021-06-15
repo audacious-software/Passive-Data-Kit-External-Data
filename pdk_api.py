@@ -24,7 +24,6 @@ CUSTOM_GENERATORS = (
     'pdk-external-engagement'
 )
 
-
 def import_external_data(data_source, request_identifier, path):
     try:
         importer = importlib.import_module('passive_data_kit_external_data.importers.' + data_source)
@@ -377,3 +376,19 @@ def visualization(source, generator):
     context['table_rows'] = rows
 
     return render_to_string('pdk_generic_viz_template.html', context)
+
+def update_data_type_definition(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-'):
+            tokens = observed.split('-')
+
+            if len(tokens) > 2:
+                for app in settings.INSTALLED_APPS:
+                    try:
+                        importer = importlib.import_module(app + '.importers.' + tokens[2])
+
+                        importer.update_data_type_definition(definition)
+                    except ImportError:
+                        pass
+                    except AttributeError:
+                        pass
