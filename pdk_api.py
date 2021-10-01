@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import csv
 import importlib
+import pkgutil
 import tempfile
 import traceback
 
@@ -16,7 +17,8 @@ from django.template.loader import render_to_string
 
 from passive_data_kit.models import DataSourceReference, DataPoint, DataGeneratorDefinition
 
-from .models import ExternalDataSource # , ExternalDataRequest
+from .models import ExternalDataSource
+from .utils import finish_batch_inserts
 
 
 CUSTOM_GENERATORS = (
@@ -28,7 +30,11 @@ def import_external_data(data_source, request_identifier, path):
     try:
         importer = importlib.import_module('passive_data_kit_external_data.importers.' + data_source)
 
-        return importer.import_data(request_identifier, path)
+        succeeded = importer.import_data(request_identifier, path)
+
+        finish_batch_inserts()
+
+        return succeeded
     except ImportError:
         pass
     except AttributeError:
@@ -52,7 +58,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                 writer = csv.writer(outfile, delimiter='\t')
 
                 columns = [
-                    'Request ID',
+                    'Record ID',
                     'Date Created',
                     'Date Recorded',
                     'Service',
@@ -222,7 +228,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                 writer = csv.writer(outfile, delimiter='\t')
 
                 columns = [
-                    'Request ID',
+                    'Record ID',
                     'Date',
                     'Service',
                     'Engagement Type',
@@ -377,7 +383,7 @@ def visualization(source, generator):
 
     return render_to_string('pdk_generic_viz_template.html', context)
 
-def update_data_type_definition(definition):
+def update_data_type_definition(definition): # pylint: disable=too-many-branches
     for observed in definition['passive-data-metadata.generator-id']['observed']:
         if observed.startswith('pdk-external-'):
             tokens = observed.split('-')
@@ -392,3 +398,30 @@ def update_data_type_definition(definition):
                         pass
                     except AttributeError:
                         pass
+
+        if observed.startswith('pdk-external-engagement-'):
+            importer = importlib.import_module('passive_data_kit_external_data.importers.engagement')
+
+            importer.update_data_type_definition(definition)
+
+    for app in settings.INSTALLED_APPS:
+        try:
+            annotators = importlib.import_module(app + '.annotators')
+
+            prefix = annotators.__name__ + '.'
+
+            for importer, modname, ispkg in pkgutil.iter_modules(annotators.__path__, prefix): # pylint: disable=unused-variable
+                module = __import__(modname, fromlist='dummy')
+
+                module.update_data_type_definition(definition)
+        except ImportError:
+            pass
+        except AttributeError:
+            pass
+
+    # Strip out any remaining encrypted or hashed content
+
+    for key in definition.keys():
+        if 'pdk_encrypted_' in key or 'pdk_hashed_' in key:
+            if 'observed' in definition[key]:
+                del definition[key]['observed']

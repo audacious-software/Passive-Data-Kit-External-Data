@@ -330,7 +330,7 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches
             elif re.match(r'^Registration\.csv', content_file):
                 process_registration(request_identifier, content_bundle.open(content_file).read())
             else:
-                print('[' + request_identifier + ']: Unable to process: ' + content_file)
+                print('LINKEDIN[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
         except: # pylint: disable=bare-except
             traceback.print_exc()
             return False

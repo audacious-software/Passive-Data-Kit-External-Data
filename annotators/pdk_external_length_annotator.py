@@ -50,3 +50,9 @@ def fetch_annotations(properties):
         return {
             'pdk_length': max_length
         }
+
+def update_data_type_definition(definition):
+    for key in definition.keys():
+        if 'pdk_length_' in key:
+            definition[key]['pdk_variable_name'] = 'Content length'
+            definition[key]['pdk_variable_description'] = 'Counts the number of characters in the provided content.'

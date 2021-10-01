@@ -70,3 +70,9 @@ def fetch_annotations(properties):
         return {
             'pdk_word_count': max_length
         }
+
+def update_data_type_definition(definition):
+    for key in definition.keys():
+        if 'pdk_word_count_' in key:
+            definition[key]['pdk_variable_name'] = 'Word count'
+            definition[key]['pdk_variable_description'] = 'Counts the words in the provided content.'
