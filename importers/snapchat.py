@@ -16,7 +16,7 @@ from ..utils import hash_content, encrypt_content, create_engagement_event, incl
 def process_chat_history(request_identifier, json_string):
     chat_history = json.loads(json_string)
 
-    for message in chat_history['Received Chat History']:
+    for message in chat_history.get('Received Chat History', []):
         created = arrow.get(message['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, message):
@@ -32,7 +32,7 @@ def process_chat_history(request_identifier, json_string):
 
             create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, engagement_type='message', start=created)
 
-    for message in chat_history['Sent Chat History']:
+    for message in chat_history.get('Sent Chat History', []):
         created = arrow.get(message['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, message):
@@ -52,7 +52,7 @@ def process_chat_history(request_identifier, json_string):
 def process_memories_history(request_identifier, json_string):
     memories_history = json.loads(json_string)
 
-    for media in memories_history['Saved Media']:
+    for media in memories_history.get('Saved Media', []):
         created = arrow.get(media['Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, media):
@@ -72,57 +72,55 @@ def process_memories_history(request_identifier, json_string):
 def process_shared_story(request_identifier, json_string):
     shared_story = json.loads(json_string)
 
-    if 'Shared Story' in shared_story:
-        for story in shared_story['Shared Story']:
-            created = arrow.get(story['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for story in shared_story.get('Shared Story', []):
+        created = arrow.get(story['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-            if include_data(request_identifier, created, story):
-                pdk_story = {
-                    'pdk_hashed_story_id': hash_content(story['Story Id'].encode('utf-8')),
-                    'pdk_encrypted_story_id': encrypt_content(story['Story Id'].encode('utf-8')),
-                    'pdk_length_story_id': len(story['Story Id']),
-                    'create_time': story['Created'],
-                    'content': [],
+        if include_data(request_identifier, created, story):
+            pdk_story = {
+                'pdk_hashed_story_id': hash_content(story['Story Id'].encode('utf-8')),
+                'pdk_encrypted_story_id': encrypt_content(story['Story Id'].encode('utf-8')),
+                'pdk_length_story_id': len(story['Story Id']),
+                'create_time': story['Created'],
+                'content': [],
+            }
+
+            if 'Status' in story:
+                pdk_story['status'] = story['Status']
+
+            for item in story['Content']:
+                content_obj = {
+                    'pdk_hashed_item': hash_content(item),
+                    'pdk_encrypted_item': encrypt_content(item.encode('utf-8')),
+                    'pdk_length_item': len(item),
+                    'item_extension': item.split('.')[-1],
                 }
 
-                if 'Status' in story:
-                    pdk_story['status'] = story['Status']
+                pdk_story['content'].append(content_obj)
 
-                for item in story['Content']:
-                    content_obj = {
-                        'pdk_hashed_item': hash_content(item),
-                        'pdk_encrypted_item': encrypt_content(item.encode('utf-8')),
-                        'pdk_length_item': len(item),
-                        'item_extension': item.split('.')[-1],
-                    }
+            DataPoint.objects.create_data_point('pdk-external-snapchat-shared-story', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
 
-                    pdk_story['content'].append(content_obj)
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='share', start=created)
 
-                DataPoint.objects.create_data_point('pdk-external-snapchat-shared-story', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
+    for story in shared_story.get('Spotlight History', []):
+        created = arrow.get(story['Story Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='share', start=created)
+        if include_data(request_identifier, created, story):
+            pdk_story = {
+                'pdk_hashed_story_url': hash_content(story['Story URL'].encode('utf-8')),
+                'pdk_encrypted_story_url': encrypt_content(story['Story URL'].encode('utf-8')),
+                'create_time': story['Story Date'],
+                'view_duration': float(story['View Time'].replace(' seconds', '')),
+            }
 
-    if 'Spotlight History' in shared_story:
-        for story in shared_story['Spotlight History']:
-            created = arrow.get(story['Story Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+            DataPoint.objects.create_data_point('pdk-external-snapchat-spoytlight-history', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
 
-            if include_data(request_identifier, created, story):
-                pdk_story = {
-                    'pdk_hashed_story_url': hash_content(story['Story URL'].encode('utf-8')),
-                    'pdk_encrypted_story_url': encrypt_content(story['Story URL'].encode('utf-8')),
-                    'create_time': story['Story Date'],
-                    'view_duration': float(story['View Time'].replace(' seconds', '')),
-                }
-
-                DataPoint.objects.create_data_point('pdk-external-snapchat-spoytlight-history', request_identifier, pdk_story, user_agent='Passive Data Kit External Importer', created=created)
-
-                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='post', start=created, duration=pdk_story['view_duration'])
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='post', start=created, duration=pdk_story['view_duration'])
 
 
 def process_snap_history(request_identifier, json_string):
     snap_history = json.loads(json_string)
 
-    for snap in snap_history['Received Snap History']:
+    for snap in snap_history.get('Received Snap History', []):
         created = arrow.get(snap['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, snap):
@@ -138,7 +136,7 @@ def process_snap_history(request_identifier, json_string):
 
             create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, engagement_type='message', start=created)
 
-    for snap in snap_history['Sent Snap History']:
+    for snap in snap_history.get('Sent Snap History', []):
         created = arrow.get(snap['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, snap):
@@ -182,7 +180,7 @@ def process_support_notes(request_identifier, json_string):
 def process_account_events(request_identifier, json_string):
     account_events = json.loads(json_string)
 
-    for login in account_events['Login History']:
+    for login in account_events.get('Login History', []):
         created = arrow.get(login['Created'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, login):
@@ -202,191 +200,180 @@ def process_account_events(request_identifier, json_string):
 def process_story_history(request_identifier, json_string):
     story_history = json.loads(json_string)
 
-    if 'Your Story Views' in story_history:
-        for view in story_history['Your Story Views']:
-            if 'View' in view:
-                created = arrow.get(view['View Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for view in story_history.get('Your Story Views', []):
+        if 'View' in view:
+            created = arrow.get(view['View Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                if include_data(request_identifier, created, view):
-                    view['pdk_hashed_viewer'] = hash_content(view['View'])
+            if include_data(request_identifier, created, view):
+                view['pdk_hashed_viewer'] = hash_content(view['View'])
 
-                    del view['View']
+                del view['View']
 
 
-                    DataPoint.objects.create_data_point('pdk-external-snapchat-story-view', request_identifier, view, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-snapchat-story-view', request_identifier, view, user_agent='Passive Data Kit External Importer', created=created)
 
-                    create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=0.0, engagement_type='story-view', start=created)
+                create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=0.0, engagement_type='story-view', start=created)
 
-    if 'Friend and Public Story Views' in story_history:
-        for view in story_history['Friend and Public Story Views']:
-            if 'View' in view:
-                created = arrow.get(view['View Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for view in story_history.get('Friend and Public Story Views', []):
+        if 'View' in view:
+            created = arrow.get(view['View Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                if include_data(request_identifier, created, view):
-                    view['pdk_hashed_viewer'] = hash_content(view['View'])
+            if include_data(request_identifier, created, view):
+                view['pdk_hashed_viewer'] = hash_content(view['View'])
 
-                    del view['View']
+                del view['View']
 
-                    DataPoint.objects.create_data_point('pdk-external-snapchat-story-view', request_identifier, view, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-snapchat-story-view', request_identifier, view, user_agent='Passive Data Kit External Importer', created=created)
 
-                    create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='story-view', start=created)
+                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='story-view', start=created)
 
 def process_friends_events(request_identifier, json_string): # pylint: disable=too-many-branches
     friends_history = json.loads(json_string)
 
-    if 'Deleted Friends' in friends_history:
-        for action in friends_history['Deleted Friends']:
-            if 'Creation Timestamp' in action:
-                created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in friends_history.get('Deleted Friends', []):
+        if 'Creation Timestamp' in action:
+            created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                if include_data(request_identifier, created, action):
-                    action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
-                    del action['Username']
+            if include_data(request_identifier, created, action):
+                action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
+                del action['Username']
 
-                    action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
-                    del action['Display Name']
+                action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
+                del action['Display Name']
 
-                    DataPoint.objects.create_data_point('pdk-external-snapchat-deleted-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-snapchat-deleted-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                    create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='deleted-contact', start=created)
+                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='deleted-contact', start=created)
 
-    if 'Friend Requests Sent' in friends_history:
-        for action in friends_history['Friend Requests Sent']:
-            if 'Creation Timestamp' in action:
-                created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in friends_history.get('Friend Requests Sent', []):
+        if 'Creation Timestamp' in action:
+            created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                if include_data(request_identifier, created, action):
-                    action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
-                    del action['Username']
+            if include_data(request_identifier, created, action):
+                action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
+                del action['Username']
 
-                    action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
-                    del action['Display Name']
+                action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
+                del action['Display Name']
 
-                    DataPoint.objects.create_data_point('pdk-external-snapchat-requested-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-snapchat-requested-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                    create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='deleted-contact', start=created)
+                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='deleted-contact', start=created)
 
-    if 'Blocked Users' in friends_history:
-        for action in friends_history['Blocked Users']:
-            if 'Creation Timestamp' in action:
-                created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in friends_history.get('Blocked Users', []):
+        if 'Creation Timestamp' in action:
+            created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                if include_data(request_identifier, created, action):
-                    action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
-                    del action['Username']
+            if include_data(request_identifier, created, action):
+                action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
+                del action['Username']
 
-                    action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
-                    del action['Display Name']
+                action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
+                del action['Display Name']
 
-                    DataPoint.objects.create_data_point('pdk-external-snapchat-blocked-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-snapchat-blocked-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                    create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='blocked-contact', start=created)
+                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='blocked-contact', start=created)
 
-    if 'Friends' in friends_history:
-        for action in friends_history['Friends']:
-            if 'Creation Timestamp' in action:
-                created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in friends_history.get('Friends', []):
+        if 'Creation Timestamp' in action:
+            created = arrow.get(action['Creation Timestamp'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-                if include_data(request_identifier, created, action):
-                    action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
-                    del action['Username']
+            if include_data(request_identifier, created, action):
+                action['pdk_encrypted_username'] = encrypt_content(action['Username'].encode('utf-8'))
+                del action['Username']
 
-                    action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
-                    del action['Display Name']
+                action['pdk_encrypted_display_name'] = encrypt_content(action['Display Name'].encode('utf-8'))
+                del action['Display Name']
 
-                    DataPoint.objects.create_data_point('pdk-external-snapchat-added-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+                DataPoint.objects.create_data_point('pdk-external-snapchat-added-contact', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                    create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='added-contact', start=created)
+                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='added-contact', start=created)
 
 def process_scan_events(request_identifier, json_string):
     scan_history = json.loads(json_string)
 
-    if 'Scan History' in scan_history:
-        for action in scan_history['Scan History']:
-            created = arrow.get(action['Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in scan_history.get('Scan History', []):
+        created = arrow.get(action['Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-            if include_data(request_identifier, created, action):
-                action['pdk_encrypted_scan_image'] = encrypt_content(action['Scan Image'].encode('utf-8'))
-                del action['Scan Image']
+        if include_data(request_identifier, created, action):
+            action['pdk_encrypted_scan_image'] = encrypt_content(action['Scan Image'].encode('utf-8'))
+            del action['Scan Image']
 
-                action['pdk_encrypted_location'] = encrypt_content(action['Location'].encode('utf-8'))
-                del action['Location']
+            action['pdk_encrypted_location'] = encrypt_content(action['Location'].encode('utf-8'))
+            del action['Location']
 
-                DataPoint.objects.create_data_point('pdk-external-snapchat-scan', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-snapchat-scan', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='scanned-code', start=created)
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='scanned-code', start=created)
 
 def process_snap_map_events(request_identifier, json_string):
     map_history = json.loads(json_string)
 
-    if 'Snap Map Places History' in map_history:
-        for action in map_history['Snap Map Places History']:
-            created = arrow.get(action['Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in map_history.get('Snap Map Places History', []):
+        created = arrow.get(action['Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-            if include_data(request_identifier, created, action):
-                action['pdk_encrypted_place_location'] = encrypt_content(action['Place Location'].encode('utf-8'))
-                del action['Place Location']
+        if include_data(request_identifier, created, action):
+            action['pdk_encrypted_place_location'] = encrypt_content(action['Place Location'].encode('utf-8'))
+            del action['Place Location']
 
-                action['pdk_encrypted_place'] = encrypt_content(action['Place'].encode('utf-8'))
-                del action['Place']
+            action['pdk_encrypted_place'] = encrypt_content(action['Place'].encode('utf-8'))
+            del action['Place']
 
-                DataPoint.objects.create_data_point('pdk-external-snapchat-place-share', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-snapchat-place-share', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='shared-place', start=created)
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='shared-place', start=created)
 
 def process_talk_events(request_identifier, json_string): # pylint: disable=too-many-branches
     talk_history = json.loads(json_string)
 
-    if 'Incoming Calls' in talk_history:
-        for action in talk_history['Incoming Calls']:
-            created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in talk_history.get('Incoming Calls', []):
+        created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-            if include_data(request_identifier, created, action):
-                action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
-                del action['City']
+        if include_data(request_identifier, created, action):
+            action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
+            del action['City']
 
-                DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
+            create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
 
-    if 'Outgoing Calls' in talk_history:
-        for action in talk_history['Outgoing Calls']:
-            created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in talk_history.get('Outgoing Calls', []):
+        created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-            if include_data(request_identifier, created, action):
-                action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
-                del action['City']
+        if include_data(request_identifier, created, action):
+            action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
+            del action['City']
 
-                DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
 
-    if 'Completed Calls' in talk_history:
-        for action in talk_history['Completed Calls']:
-            created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+    for action in talk_history.get('Completed Calls', []):
+        created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
-            if include_data(request_identifier, created, action):
-                action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
-                del action['City']
+        if include_data(request_identifier, created, action):
+            action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
+            del action['City']
 
-                DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+            DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
+            create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
+
+    for action in talk_history.get('Game Sessions', []):
+        created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
+
+        if include_data(request_identifier, created, action):
+            action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
+            del action['City']
+
+            DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
+
+            create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, outgoing_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
 
     if 'Chat Sessions' in talk_history:
         print('CHAT SESSIONS: ' + json.dumps(talk_history['Chat Sessions'], indent=2))
 
-    if 'Game Sessions' in talk_history:
-        for action in talk_history['Game Sessions']:
-            created = arrow.get(action['Date & Time'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
-
-            if include_data(request_identifier, created, action):
-                action['pdk_encrypted_city'] = encrypt_content(action['City'].encode('utf-8'))
-                del action['City']
-
-                DataPoint.objects.create_data_point('pdk-external-snapchat-call', request_identifier, action, user_agent='Passive Data Kit External Importer', created=created)
-
-                create_engagement_event(source='snapchat', identifier=request_identifier, incoming_engagement=1.0, outgoing_engagement=1.0, engagement_type='call', start=created, duration=action['Length (sec)'])
 
 def process_search_history(request_identifier, json_string):
     searches = json.loads(json_string)
@@ -422,6 +409,9 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches
         'json/subscriptions.json',
         'json/terms_history.json',
         'json/user_profile.json',
+        'json/bitmoji.json',
+        'json/cameos_metadata.json',
+        'json/in_app_surveys.json',
     ]
 
     for content_file in content_bundle.namelist():

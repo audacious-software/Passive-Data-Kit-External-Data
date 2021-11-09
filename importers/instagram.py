@@ -39,16 +39,13 @@ def process_posts_viewed(request_identifier, posts_viewed_raw):
     if isinstance(posts_viewed, dict) is False:
         return
 
-    if ('impressions_history_posts_seen' in posts_viewed) is False:
-        return
-
-    for post_viewed in posts_viewed['impressions_history_posts_seen']:
+    for post_viewed in posts_viewed.get('impressions_history_posts_seen', []):
         created = arrow.get(post_viewed['string_map_data']['Time']['timestamp']).datetime
 
         if include_data(request_identifier, created, post_viewed):
             queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-post-viewed', request_identifier, post_viewed, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
-            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='post', start=created)
+            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='post', start=created)
 
 def process_suggested_accounts_viewed(request_identifier, suggested_accounts_viewed_raw): # pylint: disable=invalid-name
     suggested_accounts_viewed = json.loads(suggested_accounts_viewed_raw)

@@ -43,267 +43,292 @@ def import_external_data(data_source, request_identifier, path):
     return False
 
 def compile_report(generator, sources, data_start=None, data_end=None, date_type='created'): # pylint: disable=too-many-locals, too-many-branches, too-many-statements, too-many-return-statements
-    try:
-        if (generator in CUSTOM_GENERATORS) is False:
-            return None
+    if (generator in CUSTOM_GENERATORS) is False:
+        return None
 
-        now = arrow.get()
+    now = arrow.get()
 
-        here_tz = pytz.timezone(settings.TIME_ZONE)
+    here_tz = pytz.timezone(settings.TIME_ZONE)
 
-        filename = tempfile.gettempdir() + '/pdk_export_' + str(now.timestamp) + str(now.microsecond / 1e6) + '.txt'
+    filename = tempfile.gettempdir() + '/pdk_export_' + str(now.timestamp) + str(now.microsecond / 1e6) + '.txt'
 
-        if generator == 'pdk-external-events':
-            with open(filename, 'w') as outfile:
-                writer = csv.writer(outfile, delimiter='\t')
+    if generator == 'pdk-external-events':
+        with open(filename, 'w') as outfile:
+            writer = csv.writer(outfile, delimiter='\t')
 
-                columns = [
-                    'Record ID',
-                    'Date Created',
-                    'Date Recorded',
-                    'Service',
-                    'Event',
-                    'Media Type',
-                    'Direction',
-                    'Outgoing Engagement Score',
-                    'Incoming Engagement Score',
-                ]
+            columns = [
+                'Record ID',
+                'Creation Date',
+                'Creation Time',
+                'Creation Time Zone',
+                'Creation Unix Timestamp',
+                'Recorded Date',
+                'Recorded Time',
+                'Recorded Time Zone',
+                'Recorded Unix Timestamp',
+                'Service',
+                'Event',
+                'Media Type',
+                'Direction',
+                'Outgoing Engagement Score',
+                'Incoming Engagement Score',
+            ]
 
-                annotations = []
+            annotations = []
 
-                for app in settings.INSTALLED_APPS:
+            for app in settings.INSTALLED_APPS:
+                try:
+                    pdk_api = importlib.import_module(app + '.pdk_external_api')
+
                     try:
-                        pdk_api = importlib.import_module(app + '.pdk_external_api')
+                        annotations.extend(pdk_api.fetch_annotation_fields())
+                    except TypeError as exception:
+                        print('Verify that ' + app + ' implements all external_data_metadata arguments!')
+                        raise exception
+                except ImportError:
+                    pass
+                except AttributeError:
+                    pass
 
-                        try:
-                            annotations.extend(pdk_api.fetch_annotation_fields())
-                        except TypeError as exception:
-                            print('Verify that ' + app + ' implements all external_data_metadata arguments!')
-                            raise exception
-                    except ImportError:
-                        pass
-                    except AttributeError:
-                        pass
+            columns.extend(annotations)
 
-                columns.extend(annotations)
+            writer.writerow(columns)
 
-                writer.writerow(columns)
+            for source in sources: # pylint: disable=too-many-nested-blocks
+                source_reference = DataSourceReference.reference_for_source(source)
 
-                for source in sources: # pylint: disable=too-many-nested-blocks
-                    source_reference = DataSourceReference.reference_for_source(source)
+                query = DataPoint.objects.filter(source_reference=source_reference).exclude(generator_identifier__startswith='pdk-external-engagement-')
 
-                    query = DataPoint.objects.filter(source_reference=source_reference).exclude(generator_identifier__startswith='pdk-external-engagement-')
+                if data_start is not None:
+                    if date_type == 'recorded':
+                        query = query.filter(recorded__gte=data_start)
+                    else:
+                        query = query.filter(created__gte=data_start)
 
-                    if data_start is not None:
-                        if date_type == 'recorded':
-                            query = query.filter(recorded__gte=data_start)
-                        else:
-                            query = query.filter(created__gte=data_start)
+                if data_end is not None:
+                    if date_type == 'recorded':
+                        query = query.filter(recorded__lte=data_end)
+                    else:
+                        query = query.filter(created__lte=data_end)
 
-                    if data_end is not None:
-                        if date_type == 'recorded':
-                            query = query.filter(recorded__lte=data_end)
-                        else:
-                            query = query.filter(created__lte=data_end)
+                point_count = query.count()
 
-                    point_count = query.count()
+                point_index = 0
 
-                    point_index = 0
+                last_seen_created = None
 
-                    last_seen_created = None
+                while point_index < point_count:
+                    points = query.order_by('created')[point_index:(point_index+1000)]
 
-                    while point_index < point_count:
-                        points = query.order_by('created')[point_index:(point_index+1000)]
+                    for point in points:
+                        if point.created != last_seen_created:
+                            columns = []
 
-                        for point in points:
-                            if point.created != last_seen_created:
-                                columns = []
+                            columns.append(source)
 
-                                columns.append(source)
-                                columns.append(point.created.astimezone(here_tz).strftime("%Y-%m-%d %H:%M:%S"))
-                                columns.append(point.recorded.astimezone(here_tz).strftime("%Y-%m-%d %H:%M:%S"))
+                            created = point.created.astimezone(here_tz)
 
-                                metadata = None
+                            columns.append(created.date().isoformat())
+                            columns.append(created.time().isoformat())
+                            columns.append(settings.TIME_ZONE)
+                            columns.append(created.strftime("%s"))
 
-                                for app in settings.INSTALLED_APPS:
-                                    if metadata is None:
-                                        try:
-                                            pdk_api = importlib.import_module(app + '.pdk_api')
+                            recorded = point.recorded.astimezone(here_tz)
 
-                                            try:
-                                                metadata = pdk_api.external_data_metadata(point)
+                            columns.append(recorded.date().isoformat())
+                            columns.append(recorded.time().isoformat())
+                            columns.append(settings.TIME_ZONE)
+                            columns.append(recorded.strftime("%s"))
 
-                                            except TypeError as exception:
-                                                print('Verify that ' + app + ' implements all external_data_metadata arguments!')
-                                                raise exception
-                                        except ImportError:
-                                            metadata = None
-                                        except AttributeError:
-                                            metadata = None
+                            metadata = None
 
-                                if metadata is not None:
-                                    if 'service' in metadata:
-                                        columns.append(metadata['service'])
-                                    else:
-                                        columns.append('')
-
-                                    if 'event' in metadata:
-                                        columns.append(metadata['event'])
-                                    else:
-                                        columns.append(point.generator_identifier)
-
-                                    if 'media_type' in metadata:
-                                        columns.append(metadata['media_type'].lower())
-                                    else:
-                                        columns.append('')
-                                else:
-                                    columns.append('')
-                                    columns.append(point.generator_identifier)
-                                    columns.append('')
-                                    columns.append('')
-
-                                engagement = DataPoint.objects.filter(source_reference=source_reference, created=point.created, generator_identifier__startswith='pdk-external-engagement-').first()
-
-                                if engagement is not None:
-                                    engagement_metadata = engagement.fetch_properties()
-
-                                    if 'engagement_direction' in engagement_metadata:
-                                        columns.append(engagement_metadata['engagement_direction'])
-                                    else:
-                                        columns.append('')
-
-                                    if 'outgoing_engagement' in engagement_metadata:
-                                        columns.append(str(engagement_metadata['outgoing_engagement']))
-                                    else:
-                                        columns.append('')
-
-                                    if 'incoming_engagement' in engagement_metadata:
-                                        columns.append(str(engagement_metadata['incoming_engagement']))
-                                    else:
-                                        columns.append('')
-                                else:
-                                    columns.append('')
-                                    columns.append('')
-
-                                annotation_values = {}
-
-                                for app in settings.INSTALLED_APPS:
+                            for app in settings.INSTALLED_APPS:
+                                if metadata is None:
                                     try:
-                                        pdk_api = importlib.import_module(app + '.pdk_external_api')
+                                        pdk_api = importlib.import_module(app + '.pdk_api')
 
                                         try:
-                                            annotation_values.update(pdk_api.fetch_annotations(point.fetch_properties()))
+                                            metadata = pdk_api.external_data_metadata(point)
+
                                         except TypeError as exception:
-                                            traceback.print_exc()
                                             print('Verify that ' + app + ' implements all external_data_metadata arguments!')
                                             raise exception
                                     except ImportError:
-                                        pass
+                                        metadata = None
                                     except AttributeError:
-                                        pass
+                                        metadata = None
 
-                                for key in annotations:
-                                    if key.lower() in annotation_values:
-                                        columns.append(str(annotation_values[key.lower()]))
-                                    else:
-                                        columns.append('')
+                            if metadata is not None:
+                                if 'service' in metadata:
+                                    columns.append(metadata['service'])
+                                else:
+                                    columns.append('')
 
-                                writer.writerow(columns)
+                                if 'event' in metadata:
+                                    columns.append(metadata['event'])
+                                else:
+                                    columns.append(point.generator_identifier)
 
-                                last_seen_created = point.created
+                                if 'media_type' in metadata:
+                                    columns.append(metadata['media_type'].lower())
+                                else:
+                                    columns.append('')
+                            else:
+                                columns.append('')
+                                columns.append(point.generator_identifier)
+                                columns.append('')
+                                columns.append('')
 
-                        point_index += 1000
-            return filename
+                            engagement = DataPoint.objects.filter(source_reference=source_reference, created=point.created, generator_identifier__startswith='pdk-external-engagement-').first()
 
-        elif generator == 'pdk-external-engagement':
-            with open(filename, 'w') as outfile:
-                definition_query = None
+                            if engagement is not None:
+                                engagement_metadata = engagement.fetch_properties()
 
-                for definition in DataGeneratorDefinition.objects.filter(name__startswith='pdk-external-engagement-'):
-                    if definition_query is None:
-                        definition_query = Q(generator_definition=definition)
+                                if 'engagement_direction' in engagement_metadata:
+                                    columns.append(engagement_metadata['engagement_direction'])
+                                else:
+                                    columns.append('')
+
+                                if 'outgoing_engagement' in engagement_metadata:
+                                    columns.append(str(engagement_metadata['outgoing_engagement']))
+                                else:
+                                    columns.append('')
+
+                                if 'incoming_engagement' in engagement_metadata:
+                                    columns.append(str(engagement_metadata['incoming_engagement']))
+                                else:
+                                    columns.append('')
+                            else:
+                                columns.append('')
+                                columns.append('')
+
+                            annotation_values = {}
+
+                            for app in settings.INSTALLED_APPS:
+                                try:
+                                    pdk_api = importlib.import_module(app + '.pdk_external_api')
+
+                                    try:
+                                        annotation_values.update(pdk_api.fetch_annotations(point.fetch_properties()))
+                                    except TypeError as exception:
+                                        traceback.print_exc()
+                                        print('Verify that ' + app + ' implements all external_data_metadata arguments!')
+                                        raise exception
+                                except ImportError:
+                                    pass
+                                except AttributeError:
+                                    pass
+
+                            for key in annotations:
+                                if key.lower() in annotation_values:
+                                    columns.append(str(annotation_values[key.lower()]))
+                                else:
+                                    columns.append('')
+
+                            writer.writerow(columns)
+
+                            last_seen_created = point.created
+
+                    point_index += 1000
+
+        return filename
+
+    elif generator == 'pdk-external-engagement':
+        with open(filename, 'w') as outfile:
+            definition_query = None
+
+            for definition in DataGeneratorDefinition.objects.filter(name__startswith='pdk-external-engagement-'):
+                if definition_query is None:
+                    definition_query = Q(generator_definition=definition)
+                else:
+                    definition_query = definition_query | Q(generator_definition=definition)
+
+            writer = csv.writer(outfile, delimiter='\t')
+
+            columns = [
+                'Record ID',
+                'Creation Date',
+                'Creation Time',
+                'Creation Time Zone',
+                'Creation Unix Timestamp',
+                'Service',
+                'Engagement Type',
+                'Direction',
+                'Outgoing Engagement',
+                'Incoming Engagement',
+            ]
+
+            writer.writerow(columns)
+
+            for source in sources: # pylint: disable=too-many-nested-blocks
+                source_reference = DataSourceReference.reference_for_source(source)
+
+                query = DataPoint.objects.filter(source_reference=source_reference).filter(definition_query)
+
+                if data_start is not None:
+                    if date_type == 'recorded':
+                        query = query.filter(recorded__gte=data_start)
                     else:
-                        definition_query = definition_query | Q(generator_definition=definition)
+                        query = query.filter(created__gte=data_start)
 
-                writer = csv.writer(outfile, delimiter='\t')
+                if data_end is not None:
+                    if date_type == 'recorded':
+                        query = query.filter(recorded__lte=data_end)
+                    else:
+                        query = query.filter(created__lte=data_end)
 
-                columns = [
-                    'Record ID',
-                    'Date',
-                    'Service',
-                    'Engagement Type',
-                    'Direction',
-                    'Outgoing Engagement',
-                    'Incoming Engagement',
-                ]
+                point_count = query.count()
 
-                writer.writerow(columns)
+                point_index = 0
 
-                for source in sources: # pylint: disable=too-many-nested-blocks
-                    source_reference = DataSourceReference.reference_for_source(source)
+                last_seen = None
 
-                    query = DataPoint.objects.filter(source_reference=source_reference).filter(definition_query)
+                while point_index < point_count:
+                    points = query.order_by('created')[point_index:(point_index+1000)]
 
-                    if data_start is not None:
-                        if date_type == 'recorded':
-                            query = query.filter(recorded__gte=data_start)
-                        else:
-                            query = query.filter(created__gte=data_start)
+                    for point in points:
+                        if last_seen is None or point.created > last_seen:
+                            columns = []
 
-                    if data_end is not None:
-                        if date_type == 'recorded':
-                            query = query.filter(recorded__lte=data_end)
-                        else:
-                            query = query.filter(created__lte=data_end)
+                            columns.append(source)
 
-                    point_count = query.count()
+                            created = point.created.astimezone(here_tz)
 
-                    point_index = 0
+                            columns.append(created.date().isoformat())
+                            columns.append(created.time().isoformat())
+                            columns.append(settings.TIME_ZONE)
+                            columns.append(created.strftime("%s"))
 
-                    last_seen = None
+                            columns.append(point.generator_identifier.replace('pdk-external-engagement-', ''))
 
-                    while point_index < point_count:
-                        points = query.order_by('created')[point_index:(point_index+1000)]
+                            metadata = point.fetch_properties()
 
-                        for point in points:
-                            if last_seen is None or point.created > last_seen:
-                                columns = []
+                            if 'type' in metadata:
+                                columns.append(metadata['type'].lower())
+                            else:
+                                columns.append('')
 
-                                columns.append(source)
-                                columns.append(point.created.astimezone(here_tz).strftime("%Y-%m-%d %H:%M:%S"))
+                            if 'engagement_direction' in metadata:
+                                columns.append(metadata['engagement_direction'])
+                            else:
+                                columns.append('')
 
-                                columns.append(point.generator_identifier.replace('pdk-external-engagement-', ''))
+                            if 'outgoing_engagement' in metadata:
+                                columns.append(metadata['outgoing_engagement'])
+                            else:
+                                columns.append('')
 
-                                metadata = point.fetch_properties()
+                            if 'incoming_engagement' in metadata:
+                                columns.append(metadata['incoming_engagement'])
+                            else:
+                                columns.append('')
 
-                                if 'type' in metadata:
-                                    columns.append(metadata['type'].lower())
-                                else:
-                                    columns.append('')
+                            writer.writerow(columns)
 
-                                if 'engagement_direction' in metadata:
-                                    columns.append(metadata['engagement_direction'])
-                                else:
-                                    columns.append('')
+                            last_seen = point.created
 
-                                if 'outgoing_engagement' in metadata:
-                                    columns.append(metadata['outgoing_engagement'])
-                                else:
-                                    columns.append('')
-
-                                if 'incoming_engagement' in metadata:
-                                    columns.append(metadata['incoming_engagement'])
-                                else:
-                                    columns.append('')
-
-                                writer.writerow(columns)
-
-                                last_seen = point.created
-
-                        point_index += 1000
-            return filename
-    except: # pylint: disable=bare-except
-        traceback.print_exc()
+                    point_index += 1000
+        return filename
 
     return None
 

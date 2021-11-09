@@ -129,7 +129,7 @@ def process_gemini_analytics(request_identifier, ads_served):
 
                 DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='ad-view', start=created)
+                create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='advertising', start=created)
 
         except arrow.parser.ParserError:
             print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
@@ -151,7 +151,7 @@ def process_client_side_ad_analytics(request_identifier, ads_served): # pylint: 
 
                 DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='ad-view', start=created)
+                create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='advertising', start=created)
         except arrow.parser.ParserError:
             print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
 
@@ -172,7 +172,7 @@ def process_explore_takeover_analytics(request_identifier, ads_served): # pylint
 
                 DataPoint.objects.create_data_point('pdk-external-tumblr-ads-served', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-                create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='ad-view', start=created)
+                create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='advertising', start=created)
 
         except arrow.parser.ParserError:
             print('[' + request_identifier + ']: Skipped ad_served: Unable to parse date: "' + str(item['serve_time']) + '".')
