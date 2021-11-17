@@ -512,66 +512,58 @@ def update_data_type_definition(definition):
     if 'pdk-external-facebook-post' in definition['passive-data-metadata.generator-id']['observed']:
         del definition['attachments']
 
-        if 'data[].pdk_encrypted_post' in definition:
-            del definition['data[].pdk_encrypted_post']['observed']
-
-            definition['data[].pdk_encrypted_post']['is_freetext'] = True
-
-            definition['data[].pdk_encrypted_post']['pdk_variable_name'] = 'Encrypted post contents'
-            definition['data[].pdk_encrypted_post']['pdk_variable_description'] = 'Encrypted contents of the original post, saved for use later (with proper authorizations and keys).'
-
-        if 'attachments[].data[].media.pdk_encrypted_uri' in definition:
-            del definition['attachments[].data[].media.pdk_encrypted_uri']['observed']
-
-            definition['attachments[].data[].media.pdk_encrypted_uri']['is_freetext'] = True
-
-            definition['attachments[].data[].media.pdk_encrypted_uri']['pdk_variable_name'] = 'Encrypted remote content URI'
-            definition['attachments[].data[].media.pdk_encrypted_uri']['pdk_variable_description'] = 'Encrypted contents of the original post media URI, saved for use later (with proper authorizations and keys).'
-
-        if 'attachments[].data[].media.pdk_encrypted_description' in definition:
-            del definition['attachments[].data[].media.pdk_encrypted_description']['observed']
-
-            definition['attachments[].data[].media.pdk_encrypted_description']['is_freetext'] = True
-
-            definition['attachments[].data[].media.pdk_encrypted_description']['pdk_variable_name'] = 'Encrypted media description'
-            definition['attachments[].data[].media.pdk_encrypted_description']['pdk_variable_description'] = 'Encrypted description of media item attached to the post, saved for use later (with proper authorizations and keys).'
-
-        if 'attachments[].data[].media.pdk_encrypted_media_metadata' in definition:
-            del definition['attachments[].data[].media.pdk_encrypted_media_metadata']['observed']
-
-            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['is_freetext'] = True
-
-            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['pdk_variable_name'] = 'Encrypted media metadata'
-            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['pdk_variable_description'] = 'Encrypted metadata of media item attached to the post, saved for use later (with proper authorizations and keys).'
-
-        if 'attachments[].data[].external_context.pdk_encrypted_url' in definition:
-            del definition['attachments[].data[].external_context.pdk_encrypted_url']['observed']
-
-            definition['attachments[].data[].external_context.pdk_encrypted_url']['is_freetext'] = True
-
-            definition['attachments[].data[].external_context.pdk_encrypted_url']['pdk_variable_name'] = 'Encrypted URL'
-            definition['attachments[].data[].external_context.pdk_encrypted_url']['pdk_variable_description'] = 'Encrypted contents of the original URL shared in the post, saved for use later (with proper authorizations and keys).'
-
-        if 'attachments[].data[].media.pdk_encrypted_title' in definition:
-            del definition['attachments[].data[].media.pdk_encrypted_title']['observed']
-
-            definition['attachments[].data[].media.pdk_encrypted_title']['is_freetext'] = True
-
-            definition['attachments[].data[].media.pdk_encrypted_title']['pdk_variable_name'] = 'Encrypted remote content title'
-            definition['attachments[].data[].media.pdk_encrypted_title']['pdk_variable_description'] = 'Encrypted contents of the original post media title, saved for use later (with proper authorizations and keys).'
-
         if 'pdk_encrypted_title' in definition:
-            del definition['pdk_encrypted_title']['observed']
-
             definition['pdk_encrypted_title']['is_freetext'] = True
-
             definition['pdk_encrypted_title']['pdk_variable_name'] = 'Encrypted post title'
             definition['pdk_encrypted_title']['pdk_variable_description'] = 'Encrypted title of the original post, saved for use later (with proper authorizations and keys).'
+            definition['pdk_encrypted_title']['pdk_codebook_order'] = 0
+            definition['pdk_encrypted_title']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
+
+        if 'data[].pdk_encrypted_post' in definition:
+            definition['data[].pdk_encrypted_post']['is_freetext'] = True
+            definition['data[].pdk_encrypted_post']['pdk_variable_name'] = 'Encrypted post contents'
+            definition['data[].pdk_encrypted_post']['pdk_variable_description'] = 'Encrypted contents of the original post, saved for use later (with proper authorizations and keys).'
+            definition['data[].pdk_encrypted_post']['pdk_codebook_order'] = 1
+            definition['data[].pdk_encrypted_post']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
+
+        if 'attachments[].data[].media.pdk_encrypted_uri' in definition:
+            definition['attachments[].data[].media.pdk_encrypted_uri']['is_freetext'] = True
+            definition['attachments[].data[].media.pdk_encrypted_uri']['pdk_variable_name'] = 'Encrypted remote content URI'
+            definition['attachments[].data[].media.pdk_encrypted_uri']['pdk_variable_description'] = 'Encrypted contents of the original post media URI, saved for use later (with proper authorizations and keys).'
+            definition['attachments[].data[].media.pdk_encrypted_uri']['pdk_codebook_order'] = 2
+            definition['attachments[].data[].media.pdk_encrypted_uri']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
+
+        if 'attachments[].data[].media.pdk_encrypted_description' in definition:
+            definition['attachments[].data[].media.pdk_encrypted_description']['is_freetext'] = True
+            definition['attachments[].data[].media.pdk_encrypted_description']['pdk_variable_name'] = 'Encrypted media description'
+            definition['attachments[].data[].media.pdk_encrypted_description']['pdk_variable_description'] = 'Encrypted description of media item attached to the post, saved for use later (with proper authorizations and keys).'
+            definition['attachments[].data[].media.pdk_encrypted_description']['pdk_codebook_order'] = 3
+            definition['attachments[].data[].media.pdk_encrypted_description']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
+
+        if 'attachments[].data[].media.pdk_encrypted_media_metadata' in definition:
+            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['is_freetext'] = True
+            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['pdk_variable_name'] = 'Encrypted media metadata'
+            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['pdk_variable_description'] = 'Encrypted metadata of media item attached to the post, saved for use later (with proper authorizations and keys).'
+            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['pdk_codebook_order'] = 4
+            definition['attachments[].data[].media.pdk_encrypted_media_metadata']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
+
+        if 'attachments[].data[].external_context.pdk_encrypted_url' in definition:
+            definition['attachments[].data[].external_context.pdk_encrypted_url']['is_freetext'] = True
+            definition['attachments[].data[].external_context.pdk_encrypted_url']['pdk_variable_name'] = 'Encrypted URL'
+            definition['attachments[].data[].external_context.pdk_encrypted_url']['pdk_variable_description'] = 'Encrypted contents of the original URL shared in the post, saved for use later (with proper authorizations and keys).'
+            definition['attachments[].data[].external_context.pdk_encrypted_url']['pdk_codebook_order'] = 5
+            definition['attachments[].data[].external_context.pdk_encrypted_url']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
+
+        if 'attachments[].data[].media.pdk_encrypted_title' in definition:
+            definition['attachments[].data[].media.pdk_encrypted_title']['is_freetext'] = True
+            definition['attachments[].data[].media.pdk_encrypted_title']['pdk_variable_name'] = 'Encrypted remote content title'
+            definition['attachments[].data[].media.pdk_encrypted_title']['pdk_variable_description'] = 'Encrypted contents of the original post media title, saved for use later (with proper authorizations and keys).'
+            definition['attachments[].data[].media.pdk_encrypted_title']['pdk_codebook_order'] = 6
+            definition['attachments[].data[].media.pdk_encrypted_title']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
 
         if 'attachments[].data[].pdk_encrypted_place' in definition:
-            del definition['attachments[].data[].pdk_encrypted_place']['observed']
-
             definition['attachments[].data[].pdk_encrypted_place']['is_freetext'] = True
-
             definition['attachments[].data[].pdk_encrypted_place']['pdk_variable_name'] = 'Encrypted place name'
             definition['attachments[].data[].pdk_encrypted_place']['pdk_variable_description'] = 'Encrypted name of the place tagged on the post, saved for use later (with proper authorizations and keys).'
+            definition['attachments[].data[].pdk_encrypted_place']['pdk_codebook_order'] = 7
+            definition['attachments[].data[].pdk_encrypted_place']['pdk_codebook_group'] = 'Passive Data Kit: External Data: Facebook Post'
