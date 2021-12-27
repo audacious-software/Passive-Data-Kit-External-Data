@@ -129,14 +129,14 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                             created = point.created.astimezone(here_tz)
 
                             columns.append(created.date().isoformat())
-                            columns.append(created.time().isoformat())
+                            columns.append(created.time().strftime('%H:%M:%S'))
                             columns.append(settings.TIME_ZONE)
                             columns.append(created.strftime("%s"))
 
                             recorded = point.recorded.astimezone(here_tz)
 
                             columns.append(recorded.date().isoformat())
-                            columns.append(recorded.time().isoformat())
+                            columns.append(recorded.time().strftime('%H:%M:%S'))
                             columns.append(settings.TIME_ZONE)
                             columns.append(recorded.strftime("%s"))
 
@@ -295,7 +295,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                             created = point.created.astimezone(here_tz)
 
                             columns.append(created.date().isoformat())
-                            columns.append(created.time().isoformat())
+                            columns.append(created.time().strftime('%H:%M:%S'))
                             columns.append(settings.TIME_ZONE)
                             columns.append(created.strftime("%s"))
 

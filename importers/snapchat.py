@@ -297,7 +297,7 @@ def process_scan_events(request_identifier, json_string):
         created = arrow.get(action['Date'], 'YYYY-MM-DD HH:mm:ss ZZZ').datetime
 
         if include_data(request_identifier, created, action):
-            action['pdk_encrypted_scan_image'] = encrypt_content(action['Scan Image'].encode('utf-8'))
+            action['pdk_encrypted_scan_image'] = encrypt_content(json.dumps(action['Scan Image']).encode('utf-8'))
             del action['Scan Image']
 
             action['pdk_encrypted_location'] = encrypt_content(action['Location'].encode('utf-8'))

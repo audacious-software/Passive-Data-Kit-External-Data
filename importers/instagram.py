@@ -90,20 +90,27 @@ def process_post_comments(request_identifier, post_comments_raw):
     if ('comments_media_comments' in post_comments) is False:
         return
 
+    warned = False
+
     for post_comment in post_comments['comments_media_comments']:
-        post_comment['encrypted_title'] = encrypt_content(post_comment['title'].encode('utf-8'))
-        del post_comment['title']
+        try:
+            post_comment['encrypted_title'] = encrypt_content(post_comment['title'].encode('utf-8'))
+            del post_comment['title']
 
-        post_comment['string_list_data']['encrypted_value'] = encrypt_content(post_comment['string_list_data']['value'].encode('utf-8'))
-        annotate_field(post_comment['string_list_data'], 'value', post_comment['string_list_data']['value'])
-        del post_comment['string_list_data']['value']
+            post_comment['string_list_data']['encrypted_value'] = encrypt_content(post_comment['string_list_data']['value'].encode('utf-8'))
+            annotate_field(post_comment['string_list_data'], 'value', post_comment['string_list_data']['value'])
+            del post_comment['string_list_data']['value']
 
-        created = arrow.get(post_comment['string_map_data']['Time']['timestamp']).datetime
+            created = arrow.get(post_comment['string_map_data']['Time']['timestamp']).datetime
 
-        if include_data(request_identifier, created, post_comment):
-            queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+            if include_data(request_identifier, created, post_comment):
+                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
-            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
+                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
+        except TypeError:
+            if warned is False:
+                print('Unexpected structure encountered (process_liked_comments): %s' % json.dumps(post_comment, indent=2))
+                warned = True
 
 def process_posts_made(request_identifier, posts_made_raw):
     posts_made = json.loads(posts_made_raw)
@@ -138,19 +145,25 @@ def process_liked_comments(request_identifier, liked_comments_raw):
     if ('likes_comment_likes' in liked_comments) is False:
         return
 
+    warned = False
+
     for liked_comment in liked_comments['likes_comment_likes']:
-        created = arrow.get(liked_comment['string_map_data']['timestamp']).datetime
+        if 'string_map_data' in liked_comment:
+            created = arrow.get(liked_comment['string_map_data']['timestamp']).datetime
 
-        if include_data(request_identifier, created, liked_comment):
-            liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
-            del liked_comment['title']
+            if include_data(request_identifier, created, liked_comment):
+                liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
+                del liked_comment['title']
 
-            liked_comment['string_list_data']['encrypted_href'] = encrypt_content(liked_comment['string_list_data']['href'].encode('utf-8'))
-            del liked_comment['string_list_data']['href']
+                liked_comment['string_list_data']['encrypted_href'] = encrypt_content(liked_comment['string_list_data']['href'].encode('utf-8'))
+                del liked_comment['string_list_data']['href']
 
-            queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
-            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+        elif warned is False:
+            print('Unexpected structure encountered (process_liked_comments): %s' % json.dumps(liked_comment, indent=2))
+            warned = True
 
 def process_liked_posts(request_identifier, liked_posts_raw):
     liked_posts = json.loads(liked_posts_raw)
@@ -547,7 +560,7 @@ def process_connections_events(request_identifier, json_string): # pylint: disab
 
                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-deleted-contact', request_identifier, payload, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
-                create_engagement_event(source='instagram', identifier=request_identifier, incoming_engagement=0.5, engagement_type='deleted-contact', start=created)
+                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='deleted-contact', start=created)
 
     if 'blocked_users' in friends_history:
         for contact, contact_date in friends_history['blocked_users'].iteritems():
@@ -602,6 +615,8 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
             elif 'no-data' in content_file:
                 pass
             elif 'media/archived_posts' in content_file:
+                pass
+            elif 'media/stories' in content_file:
                 pass
             elif content_file in skip_files:
                 pass

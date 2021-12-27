@@ -102,7 +102,7 @@ def process_push_notifications(request_identifier, notifications):
 
             DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-open', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='tumblr', identifier=request_identifier, incoming_engagement=1.0, engagement_type='notification-open', start=created)
+            create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='notification-open', start=created)
 
 def process_push_notification_settings(request_identifier, settings): # pylint: disable=invalid-name
     for item in settings:
@@ -111,7 +111,7 @@ def process_push_notification_settings(request_identifier, settings): # pylint: 
         if include_data(request_identifier, created, item):
             DataPoint.objects.create_data_point('pdk-external-tumblr-push-notification-setting', request_identifier, item, user_agent='Passive Data Kit External Importer', created=created)
 
-            create_engagement_event(source='tumblr', identifier=request_identifier, incoming_engagement=1.0, engagement_type='notification-setting', start=created)
+            create_engagement_event(source='tumblr', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='notification-setting', start=created)
 
 def process_gemini_analytics(request_identifier, ads_served):
     for item in ads_served:

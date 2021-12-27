@@ -151,9 +151,9 @@ def process_direct_messages(request_identifier, messages_raw): # pylint: disable
                         DataPoint.objects.create_data_point('pdk-external-twitter-direct-message-reaction', request_identifier, pdk_message, user_agent='Passive Data Kit External Importer', created=created)
 
                         if my_id == msg_data['senderId']:
-                            create_engagement_event(source='twitter', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='reaction', start=created)
+                            create_engagement_event(source='twitter', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
                         else:
-                            create_engagement_event(source='twitter', identifier=request_identifier, incoming_engagement=1.0, engagement_type='reaction', start=created)
+                            create_engagement_event(source='twitter', identifier=request_identifier, incoming_engagement=0.5, engagement_type='reaction', start=created)
                 else:
                     print('TWITTER/MSG: ' + json.dumps(message, indent=2))
 
