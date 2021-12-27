@@ -47,7 +47,8 @@ class Command(BaseCommand):
 
             print(new_filename)
 
-            data_file.data_file.save(new_filename, File(open(decrypted_path)))
+            with open(decrypted_path, 'rb') as export_file:
+                data_file.data_file.save(new_filename, File(export_file))
 
             data_file.processed = None
             data_file.skipped = None

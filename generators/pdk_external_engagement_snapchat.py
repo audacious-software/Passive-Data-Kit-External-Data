@@ -1,5 +1,6 @@
 # pylint: disable=line-too-long, no-member
 
+import io
 import json
 import time
 
@@ -12,7 +13,7 @@ def generator_name(identifier): # pylint: disable=unused-argument
 def visualization(source, generator): # pylint: disable=unused-argument
     filename = settings.MEDIA_ROOT + '/pdk_visualizations/' + source.identifier + '/pdk-external-engagement-snapchat/events.json'
 
-    with open(filename) as infile:
+    with io.open(filename, encoding='utf-8') as infile:
         data = json.load(infile)
 
         context = {}
@@ -57,5 +58,5 @@ def compile_visualization(identifier, points, folder): # pylint: disable=unused-
         'unknown': unknown
     }
 
-    with open(folder + '/events.json', 'w') as outfile:
+    with io.open(folder + '/events.json', 'w', encoding='utf-8') as outfile:
         json.dump(timestamps, outfile, indent=2)

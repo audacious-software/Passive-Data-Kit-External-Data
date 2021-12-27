@@ -393,64 +393,64 @@ def process_search_history(request_identifier, json_string):
             create_engagement_event(source='snapchat', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='search', start=created)
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches
-    content_bundle = zipfile.ZipFile(path)
+    with zipfile.ZipFile(path) as content_bundle:
+        skip_files = [
+            'json/account_history.json',
+            'json/bitmoji.json ',
+            'json/bitmoji_kit_user.json',
+            'json/community_lenses.json',
+            'json/connected_apps.json',
+            'json/email_campaign_history.json',
+            'json/in_app_reports.json',
+            'json/location_history.json',
+            'json/ranking.json',
+            'json/snap_pro.json',
+            'json/subscriptions.json',
+            'json/terms_history.json',
+            'json/user_profile.json',
+            'json/bitmoji.json',
+            'json/cameos_metadata.json',
+            'json/in_app_surveys.json',
+        ]
 
-    skip_files = [
-        'json/account_history.json',
-        'json/bitmoji.json ',
-        'json/bitmoji_kit_user.json',
-        'json/community_lenses.json',
-        'json/connected_apps.json',
-        'json/email_campaign_history.json',
-        'json/in_app_reports.json',
-        'json/location_history.json',
-        'json/ranking.json',
-        'json/snap_pro.json',
-        'json/subscriptions.json',
-        'json/terms_history.json',
-        'json/user_profile.json',
-        'json/bitmoji.json',
-        'json/cameos_metadata.json',
-        'json/in_app_surveys.json',
-    ]
-
-    for content_file in content_bundle.namelist():
-        try:
-            if content_file.endswith('/'):
-                pass
-            elif content_file.endswith('.html'):
-                pass
-            elif content_file in skip_files:
-                pass
-            elif re.match(r'.*\/talk_history\.json$', content_file):
-                process_talk_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/snap_map_places_history\.json$', content_file):
-                process_snap_map_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/scans\.json$', content_file):
-                process_scan_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/friends\.json$', content_file):
-                process_friends_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/account\.json$', content_file):
-                process_account_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/chat_history\.json$', content_file):
-                process_chat_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/memories_history\.json$', content_file):
-                process_memories_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/shared_story\.json$', content_file):
-                process_shared_story(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/snap_history\.json$', content_file):
-                process_snap_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/support_note\.json$', content_file):
-                process_support_notes(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/search_history\.json$', content_file):
-                process_search_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/story_history\.json$', content_file):
-                process_story_history(request_identifier, content_bundle.open(content_file).read())
-            else:
-                print('SNAPCHAT[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+        for content_file in content_bundle.namelist():
+            try:
+                with content_bundle.open(content_file) as opened_file:
+                    if content_file.endswith('/'):
+                        pass
+                    elif content_file.endswith('.html'):
+                        pass
+                    elif content_file in skip_files:
+                        pass
+                    elif re.match(r'.*\/talk_history\.json$', content_file):
+                        process_talk_events(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/snap_map_places_history\.json$', content_file):
+                        process_snap_map_events(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/scans\.json$', content_file):
+                        process_scan_events(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/friends\.json$', content_file):
+                        process_friends_events(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/account\.json$', content_file):
+                        process_account_events(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/chat_history\.json$', content_file):
+                        process_chat_history(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/memories_history\.json$', content_file):
+                        process_memories_history(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/shared_story\.json$', content_file):
+                        process_shared_story(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/snap_history\.json$', content_file):
+                        process_snap_history(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/support_note\.json$', content_file):
+                        process_support_notes(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/search_history\.json$', content_file):
+                        process_search_history(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/story_history\.json$', content_file):
+                        process_story_history(request_identifier, opened_file.read())
+                    else:
+                        print('SNAPCHAT[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+            except: # pylint: disable=bare-except
+                traceback.print_exc()
+                return False
 
     return True
 

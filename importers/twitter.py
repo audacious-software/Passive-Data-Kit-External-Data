@@ -193,82 +193,82 @@ def process_ad_engagements(request_identifier, ads_raw):
                     create_engagement_event(source='twitter', identifier=request_identifier, outgoing_engagement=0.0, engagement_type='advertising', start=created)
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches
-    content_bundle = zipfile.ZipFile(path)
+    with zipfile.ZipFile(path) as content_bundle:
+        skip_files = [
+            'data/manifest.js',
+            'data/account-creation-ip.js',
+            'data/account-suspension.js',
+            'data/account-timezone.js',
+            'data/account.js',
+            'data/ad-mobile-conversions-attributed.js',
+            'data/ad-mobile-conversions-unattributed.js',
+            'data/ad-online-conversions-attributed.js',
+            'data/ad-online-conversions-unattributed.js',
+            'data/ageinfo.js',
+            'data/block.js',
+            'data/branch-links.js',
+            'data/connected-application.js',
+            'data/contact.js',
+            'data/device-token.js',
+            'data/direct-message-group-headers.js',
+            'data/direct-message-headers.js',
+            'data/direct-messages-group.js',
+            'data/email-address-change.js',
+            'data/follower.js',
+            'data/following.js',
+            'data/ip-audit.js',
+            'data/like.js',
+            'data/moment.js',
+            'data/mute.js',
+            'data/ni-devices.js',
+            'data/periscope-account-information.js',
+            'data/periscope-ban-information.js',
+            'data/periscope-broadcast-metadata.js',
+            'data/periscope-profile-description.js',
+            'data/personalization.js',
+            'data/phone-number.js',
+            'data/profile.js',
+            'data/saved-search.js',
+            'data/screen-name-change.js',
+            'data/verified.js',
+        ]
 
-    skip_files = [
-        'data/manifest.js',
-        'data/account-creation-ip.js',
-        'data/account-suspension.js',
-        'data/account-timezone.js',
-        'data/account.js',
-        'data/ad-mobile-conversions-attributed.js',
-        'data/ad-mobile-conversions-unattributed.js',
-        'data/ad-online-conversions-attributed.js',
-        'data/ad-online-conversions-unattributed.js',
-        'data/ageinfo.js',
-        'data/block.js',
-        'data/branch-links.js',
-        'data/connected-application.js',
-        'data/contact.js',
-        'data/device-token.js',
-        'data/direct-message-group-headers.js',
-        'data/direct-message-headers.js',
-        'data/direct-messages-group.js',
-        'data/email-address-change.js',
-        'data/follower.js',
-        'data/following.js',
-        'data/ip-audit.js',
-        'data/like.js',
-        'data/moment.js',
-        'data/mute.js',
-        'data/ni-devices.js',
-        'data/periscope-account-information.js',
-        'data/periscope-ban-information.js',
-        'data/periscope-broadcast-metadata.js',
-        'data/periscope-profile-description.js',
-        'data/personalization.js',
-        'data/phone-number.js',
-        'data/profile.js',
-        'data/saved-search.js',
-        'data/screen-name-change.js',
-        'data/verified.js',
-    ]
-
-    for content_file in content_bundle.namelist():
-        try:
-            if content_file.endswith('/'):
-                pass
-            elif content_file in skip_files:
-                pass
-            elif 'assets/' in content_file:
-                pass
-            elif '.i18n.' in content_file:
-                pass
-            elif content_file.endswith('.png'):
-                pass
-            elif content_file.endswith('.svg'):
-                pass
-            elif content_file.endswith('.jpg'):
-                pass
-            elif content_file.endswith('.mp4'):
-                pass
-            elif re.match(r'.*\/direct-message\.js', content_file):
-                process_direct_messages(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/direct-messages\.js', content_file):
-                process_direct_messages(request_identifier, content_bundle.open(content_file).read())
-            # elif re.match(r'^like\.js', content_file[-1]):
-            #    process_likes(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/tweet\.js', content_file):
-                process_tweets(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/ad-impressions\.js', content_file):
-                process_ad_impressions(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'.*\/ad-engagements\.js', content_file):
-                process_ad_engagements(request_identifier, content_bundle.open(content_file).read())
-            else:
-                print('TWITTER[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+        for content_file in content_bundle.namelist():
+            with content_bundle.open(content_file) as opened_file:
+                try:
+                    if content_file.endswith('/'):
+                        pass
+                    elif content_file in skip_files:
+                        pass
+                    elif 'assets/' in content_file:
+                        pass
+                    elif '.i18n.' in content_file:
+                        pass
+                    elif content_file.endswith('.png'):
+                        pass
+                    elif content_file.endswith('.svg'):
+                        pass
+                    elif content_file.endswith('.jpg'):
+                        pass
+                    elif content_file.endswith('.mp4'):
+                        pass
+                    elif re.match(r'.*\/direct-message\.js', content_file):
+                        process_direct_messages(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/direct-messages\.js', content_file):
+                        process_direct_messages(request_identifier, opened_file.read())
+                    # elif re.match(r'^like\.js', content_file[-1]):
+                    #    process_likes(request_identifier, content_bundle.open(content_file).read())
+                    elif re.match(r'.*\/tweet\.js', content_file):
+                        process_tweets(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/ad-impressions\.js', content_file):
+                        process_ad_impressions(request_identifier, opened_file.read())
+                    elif re.match(r'.*\/ad-engagements\.js', content_file):
+                        process_ad_engagements(request_identifier, opened_file.read())
+                    else:
+                        print('TWITTER[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+                except: # pylint: disable=bare-except
+                    traceback.print_exc()
+                    return False
 
     return True
 

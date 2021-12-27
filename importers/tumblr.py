@@ -214,19 +214,19 @@ def process_payload(request_identifier, payload_json):
             process_explore_takeover_analytics(request_identifier, data['explore_takeover_analytics'])
 
 def import_data(request_identifier, path):
-    content_bundle = zipfile.ZipFile(path)
-
-    for content_file in content_bundle.namelist():
-        try:
-            if content_file.endswith('/'):
-                pass
-            elif re.match(r'^payload.*\.json', content_file):
-                process_payload(request_identifier, content_bundle.open(content_file).read())
-            else:
-                print('TUMBLR[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+    with zipfile.ZipFile(path) as content_bundle:
+        for content_file in content_bundle.namelist():
+            with content_bundle.open(content_file) as opened_file:
+                try:
+                    if content_file.endswith('/'):
+                        pass
+                    elif re.match(r'^payload.*\.json', content_file):
+                        process_payload(request_identifier, opened_file.read())
+                    else:
+                        print('TUMBLR[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+                except: # pylint: disable=bare-except
+                    traceback.print_exc()
+                    return False
 
     return True
 

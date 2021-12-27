@@ -618,77 +618,78 @@ def process_search_history(request_identifier, searches_raw):
                                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-facebook-search', request_identifier, payload, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches, too-many-statements
-    content_bundle = zipfile.ZipFile(path)
+    with zipfile.ZipFile(path) as content_bundle:
+        full_names = []
 
-    full_names = []
+        for content_file in content_bundle.namelist():
+            try:
+                with content_bundle.open(content_file) as opened_file:
+                    if re.match(r'^messages/inbox/.*\.json', content_file):
+                        if len(full_names) == 0: # pylint: disable=len-as-condition
+                            try:
+                                with content_bundle.open('messages/autofill_information.json') as autofill_file:
+                                    autofill = json.loads(autofill_file.read())
 
-    for content_file in content_bundle.namelist():
-        try:
-            if re.match(r'^messages/inbox/.*\.json', content_file):
-                if len(full_names) == 0: # pylint: disable=len-as-condition
-                    try:
-                        autofill = json.loads(content_bundle.open('messages/autofill_information.json').read())
+                                    full_names.extend(autofill['autofill_information_v2']['FULL_NAME'])
+                            except KeyError:
+                                pass # missing autofill_information.json
 
-                        full_names.extend(autofill['autofill_information_v2']['FULL_NAME'])
-                    except KeyError:
-                        pass # missing autofill_information.json
-
-                process_messages(request_identifier, content_bundle.open(content_file).read(), full_names)
-            elif content_file.endswith('/'):
-                pass
-            elif content_file.lower().endswith('.jpg'):
-                pass
-            elif content_file.lower().endswith('.png'):
-                pass
-            elif content_file.lower().endswith('.mp4'):
-                pass
-            elif content_file.lower().endswith('.gif'):
-                pass
-            elif content_file.lower().endswith('.pdf'):
-                pass
-            elif content_file.lower().endswith('.webp'):
-                pass
-            elif content_file.lower().endswith('.aac'):
-                pass
-            elif content_file.lower().endswith('.mp3'):
-                pass
-            elif content_file.lower().endswith('.psd'):
-                pass
-            elif content_file.lower().endswith('.docx'):
-                pass
-            elif content_file.lower().endswith('.otf'):
-                pass
-            elif content_file.lower().endswith('.xml'):
-                pass
-            elif content_file.lower().endswith('.zip'):
-                pass
-            elif content_file.lower().endswith('.rar'):
-                pass
-            elif re.match(r'^photos_and_videos\/', content_file):
-                pass
-            elif re.match(r'^comments\/.*\.json', content_file):
-                process_comments(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^comments_and_reactions\/comments.json', content_file):
-                process_comments(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^posts\/.*\.json', content_file):
-                process_posts(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^about_you\/viewed.json', content_file):
-                process_viewed(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^about_you\/visited.json', content_file):
-                process_visited(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^likes_and_reactions\/pages.json', content_file):
-                process_page_reactions(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^likes_and_reactions\/posts_and_comments.json', content_file):
-                process_post_comment_reactions(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^comments_and_reactions\/posts_and_comments.json', content_file):
-                process_post_comment_reactions(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^search_history\/your_search_history.json', content_file):
-                process_search_history(request_identifier, content_bundle.open(content_file).read())
-            else:
-                print('FACEBOOK[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+                        process_messages(request_identifier, content_bundle.open(content_file).read(), full_names)
+                    elif content_file.endswith('/'):
+                        pass
+                    elif content_file.lower().endswith('.jpg'):
+                        pass
+                    elif content_file.lower().endswith('.png'):
+                        pass
+                    elif content_file.lower().endswith('.mp4'):
+                        pass
+                    elif content_file.lower().endswith('.gif'):
+                        pass
+                    elif content_file.lower().endswith('.pdf'):
+                        pass
+                    elif content_file.lower().endswith('.webp'):
+                        pass
+                    elif content_file.lower().endswith('.aac'):
+                        pass
+                    elif content_file.lower().endswith('.mp3'):
+                        pass
+                    elif content_file.lower().endswith('.psd'):
+                        pass
+                    elif content_file.lower().endswith('.docx'):
+                        pass
+                    elif content_file.lower().endswith('.otf'):
+                        pass
+                    elif content_file.lower().endswith('.xml'):
+                        pass
+                    elif content_file.lower().endswith('.zip'):
+                        pass
+                    elif content_file.lower().endswith('.rar'):
+                        pass
+                    elif re.match(r'^photos_and_videos\/', content_file):
+                        pass
+                    elif re.match(r'^comments\/.*\.json', content_file):
+                        process_comments(request_identifier, opened_file.read())
+                    elif re.match(r'^comments_and_reactions\/comments.json', content_file):
+                        process_comments(request_identifier, opened_file.read())
+                    elif re.match(r'^posts\/.*\.json', content_file):
+                        process_posts(request_identifier, opened_file.read())
+                    elif re.match(r'^about_you\/viewed.json', content_file):
+                        process_viewed(request_identifier, opened_file.read())
+                    elif re.match(r'^about_you\/visited.json', content_file):
+                        process_visited(request_identifier, opened_file.read())
+                    elif re.match(r'^likes_and_reactions\/pages.json', content_file):
+                        process_page_reactions(request_identifier, opened_file.read())
+                    elif re.match(r'^likes_and_reactions\/posts_and_comments.json', content_file):
+                        process_post_comment_reactions(request_identifier, opened_file.read())
+                    elif re.match(r'^comments_and_reactions\/posts_and_comments.json', content_file):
+                        process_post_comment_reactions(request_identifier, opened_file.read())
+                    elif re.match(r'^search_history\/your_search_history.json', content_file):
+                        process_search_history(request_identifier, opened_file.read())
+                    else:
+                        print('FACEBOOK[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+            except: # pylint: disable=bare-except
+                traceback.print_exc()
+                return False
 
     return True
 

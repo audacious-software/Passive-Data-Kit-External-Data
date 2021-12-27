@@ -42,7 +42,8 @@ class Command(BaseCommand):
 
             new_filename = os.path.basename(encrypted_path).replace('.aes-tmp', '.aes')
 
-            data_file.data_file.save(new_filename, File(open(encrypted_path)))
+            with open(encrypted_path, 'rb') as export_file:
+                data_file.data_file.save(new_filename, File(export_file))
 
             os.remove(original_path)
             os.remove(encrypted_path)

@@ -594,94 +594,96 @@ def process_save_events(request_identifier, json_string):
                 create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='saved-media', start=created)
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches, too-many-statements
-    content_bundle = zipfile.ZipFile(path)
+    with zipfile.ZipFile(path) as content_bundle:
+        skip_files = [
+            'autofill.json',
+            'uploaded_contacts.json',
+            'checkout.json',
+            'profile.json',
+            'settings.json',
+            'information_about_you.json',
+            'devices.json',
+            'shopping.json',
+            'guides.json',
+        ]
 
-    skip_files = [
-        'autofill.json',
-        'uploaded_contacts.json',
-        'checkout.json',
-        'profile.json',
-        'settings.json',
-        'information_about_you.json',
-        'devices.json',
-        'shopping.json',
-        'guides.json',
-    ]
+        for content_file in content_bundle.namelist():
+            try:
+                with content_bundle.open(content_file) as opened_file:
+                    if content_file.endswith('/'):
+                        pass
+                    elif 'no-data' in content_file:
+                        pass
+                    elif 'media/archived_posts' in content_file:
+                        pass
+                    elif 'media/stories' in content_file:
+                        pass
+                    elif content_file in skip_files:
+                        pass
+                    elif content_file.endswith('.mp4'):
+                        pass
+                    elif content_file.endswith('.m4a'):
+                        pass
+                    elif content_file.endswith('.jpg'):
+                        pass
+                    elif re.match(r'^messages\/.*\/message_.*\.html', content_file):
+                        pass
+                    elif re.match(r'^comments\.json', content_file):
+                        process_comments(request_identifier, opened_file.read())
+                    elif re.match(r'^stories_activities\.json', content_file):
+                        process_stories(request_identifier, opened_file.read())
+                    elif re.match(r'^connections\.json', content_file):
+                        process_connections_events(request_identifier, opened_file.read())
+                    elif re.match(r'^saved\.json', content_file):
+                        process_save_events(request_identifier, opened_file.read())
+                    elif re.match(r'^media\.json', content_file):
+                        process_media(request_identifier, opened_file.read())
+                    elif re.match(r'^likes\.json', content_file):
+                        process_likes(request_identifier, opened_file.read())
+                    elif re.match(r'^seen_content\.json', content_file):
+                        process_seen_content(request_identifier, opened_file.read())
+                    elif re.match(r'^searches\.json', content_file):
+                        process_searches(request_identifier, opened_file.read())
+                    elif re.match(r'^messages\.json', content_file):
+                        with content_bundle.open('profile.json') as profile_file:
+                            profile_json = json.loads(profile_file.read())
 
-    for content_file in content_bundle.namelist():
-        try:
-            if content_file.endswith('/'):
-                pass
-            elif 'no-data' in content_file:
-                pass
-            elif 'media/archived_posts' in content_file:
-                pass
-            elif 'media/stories' in content_file:
-                pass
-            elif content_file in skip_files:
-                pass
-            elif content_file.endswith('.mp4'):
-                pass
-            elif content_file.endswith('.m4a'):
-                pass
-            elif content_file.endswith('.jpg'):
-                pass
-            elif re.match(r'^messages\/.*\/message_.*\.html', content_file):
-                pass
-            elif re.match(r'^comments\.json', content_file):
-                process_comments(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^stories_activities\.json', content_file):
-                process_stories(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^connections\.json', content_file):
-                process_connections_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^saved\.json', content_file):
-                process_save_events(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^media\.json', content_file):
-                process_media(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^likes\.json', content_file):
-                process_likes(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^seen_content\.json', content_file):
-                process_seen_content(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^searches\.json', content_file):
-                process_searches(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^messages\.json', content_file):
-                profile_json = json.loads(content_bundle.open('profile.json').read())
+                            username = profile_json['username']
 
-                username = profile_json['username']
+                            process_messages(request_identifier, username, opened_file.read())
+                    elif re.match(r'^ads_and_content\/ads_viewed\.json', content_file):
+                        process_ads_viewed(request_identifier, opened_file.read())
+                    elif re.match(r'^ads_and_content\/posts_viewed\.json', content_file):
+                        process_posts_viewed(request_identifier, opened_file.read())
+                    elif re.match(r'^ads_and_content\/suggested_accounts_viewed\.json', content_file):
+                        process_suggested_accounts_viewed(request_identifier, opened_file.read())
+                    elif re.match(r'^ads_and_content\/videos_watched\.json', content_file):
+                        process_videos_watched(request_identifier, opened_file.read())
+                    elif re.match(r'^comments\/post_comments\.json', content_file):
+                        process_post_comments(request_identifier, opened_file.read())
+                    elif re.match(r'^posts\/post_.*\.json', content_file):
+                        process_posts_made(request_identifier, opened_file.read())
+                    elif re.match(r'^likes\/liked_comments.json', content_file):
+                        process_liked_comments(request_identifier, opened_file.read())
+                    elif re.match(r'^login_and_account_creation\/login_activity.json', content_file):
+                        process_login_activity(request_identifier, opened_file.read())
+                    elif re.match(r'^account_history.json', content_file):
+                        process_account_history(request_identifier, opened_file.read())
+                    elif re.match(r'^messages\/.*\/message_.*\.json', content_file):
+                        try:
+                            with content_bundle.open('account_information/personal_information.json') as info_file:
+                                profile_json = json.loads(info_file.read())
 
-                process_messages(request_identifier, username, content_bundle.open(content_file).read())
-            elif re.match(r'^ads_and_content\/ads_viewed\.json', content_file):
-                process_ads_viewed(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^ads_and_content\/posts_viewed\.json', content_file):
-                process_posts_viewed(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^ads_and_content\/suggested_accounts_viewed\.json', content_file):
-                process_suggested_accounts_viewed(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^ads_and_content\/videos_watched\.json', content_file):
-                process_videos_watched(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^comments\/post_comments\.json', content_file):
-                process_post_comments(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^posts\/post_.*\.json', content_file):
-                process_posts_made(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^likes\/liked_comments.json', content_file):
-                process_liked_comments(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^login_and_account_creation\/login_activity.json', content_file):
-                process_login_activity(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^account_history.json', content_file):
-                process_account_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^messages\/.*\/message_.*\.json', content_file):
-                try:
-                    profile_json = json.loads(content_bundle.open('account_information/personal_information.json').read())
+                                username = profile_json['profile_user'][0]['string_map_data']['Name']['value']
 
-                    username = profile_json['profile_user'][0]['string_map_data']['Name']['value']
-
-                    process_messages_new(request_identifier, username, content_bundle.open(content_file).read())
-                except KeyError:
-                    pass
-            else:
-                print('INSTAGRAM[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+                                process_messages_new(request_identifier, username, opened_file.read())
+                        except KeyError:
+                            pass
+                    else:
+                        print('INSTAGRAM[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+            except: # pylint: disable=bare-except
+                traceback.print_exc()
+                return False
 
     return True
 

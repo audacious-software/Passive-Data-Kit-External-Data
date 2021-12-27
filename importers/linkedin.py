@@ -303,37 +303,37 @@ def process_registration(request_identifier, registration_raw):
 
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches
-    content_bundle = zipfile.ZipFile(path)
-
-    for content_file in content_bundle.namelist():
-        try:
-            if content_file.endswith('/'):
-                pass
-            elif re.match(r'^Company\ Follows\.csv', content_file):
-                process_follows(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Connections\.csv', content_file):
-                process_connections(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Contacts\.csv', content_file):
-                process_contacts(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Email\ Addresses\.csv', content_file):
-                process_email_addresses(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Groups\.csv', content_file):
-                process_groups(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Invitations\.csv', content_file):
-                process_invitations(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^messages\.csv', content_file):
-                process_messages(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Recommendations\ Given\.csv', content_file):
-                process_recommendations_given(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Recommendations\ Received\.csv', content_file):
-                process_recommendations_received(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^Registration\.csv', content_file):
-                process_registration(request_identifier, content_bundle.open(content_file).read())
-            else:
-                print('LINKEDIN[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+    with zipfile.ZipFile(path) as content_bundle:
+        for content_file in content_bundle.namelist():
+            try:
+                with content_bundle.open(content_file) as opened_file:
+                    if content_file.endswith('/'):
+                        pass
+                    elif re.match(r'^Company\ Follows\.csv', content_file):
+                        process_follows(request_identifier, opened_file.read())
+                    elif re.match(r'^Connections\.csv', content_file):
+                        process_connections(request_identifier, opened_file.read())
+                    elif re.match(r'^Contacts\.csv', content_file):
+                        process_contacts(request_identifier, opened_file.read())
+                    elif re.match(r'^Email\ Addresses\.csv', content_file):
+                        process_email_addresses(request_identifier, opened_file.read())
+                    elif re.match(r'^Groups\.csv', content_file):
+                        process_groups(request_identifier, opened_file.read())
+                    elif re.match(r'^Invitations\.csv', content_file):
+                        process_invitations(request_identifier, opened_file.read())
+                    elif re.match(r'^messages\.csv', content_file):
+                        process_messages(request_identifier, opened_file.read())
+                    elif re.match(r'^Recommendations\ Given\.csv', content_file):
+                        process_recommendations_given(request_identifier, opened_file.read())
+                    elif re.match(r'^Recommendations\ Received\.csv', content_file):
+                        process_recommendations_received(request_identifier, opened_file.read())
+                    elif re.match(r'^Registration\.csv', content_file):
+                        process_registration(request_identifier, opened_file.read())
+                    else:
+                        print('LINKEDIN[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+            except: # pylint: disable=bare-except
+                traceback.print_exc()
+                return False
 
     return True
 

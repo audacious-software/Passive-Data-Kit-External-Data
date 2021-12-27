@@ -172,49 +172,49 @@ def process_messages(request_identifier, file_html):
                 create_engagement_event(source='youtube', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='chatroom', start=created)
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches
-    content_bundle = zipfile.ZipFile(path)
-
-    for content_file in content_bundle.namelist():
-        try:
-            if content_file.endswith('/'):
-                pass
-            elif 'Location History' in content_file:
-                pass
-            elif 'Google Play Games Services' in content_file:
-                pass
-            elif 'Google Play Movies' in content_file:
-                pass
-            elif 'YouTube and YouTube Music/playlists' in content_file:
-                pass
-            elif 'Takeout/Drive' in content_file:
-                pass
-            elif 'Takeout/YouTube and YouTube Music/videos' in content_file:
-                pass
-            elif 'archive_browser.html' in content_file:
-                pass
-            elif 'music-library-songs.csv' in content_file:
-                pass
-            elif 'subscriptions/subscriptions.json' in content_file:
-                pass
-            elif 'Takeout/YouTube/playlists' in content_file:
-                pass
-            elif re.match(r'^.*\/watch-history.json', content_file):
-                process_watch_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^.*\/search-history.json', content_file):
-                process_search_history(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^.*\/uploads.json', content_file):
-                process_uploads(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^.*\/likes.json', content_file):
-                process_likes(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^.*\/my-comments\/my-comments.html', content_file):
-                process_comments(request_identifier, content_bundle.open(content_file).read())
-            elif re.match(r'^.*\/my-live-chat-messages\/my-live-chat-messages.html', content_file):
-                process_messages(request_identifier, content_bundle.open(content_file).read())
-            else:
-                print('YOUTUBE[' + request_identifier + ']: Unable to process: ' + content_file.encode('ascii', errors='replace')  + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
-        except: # pylint: disable=bare-except
-            traceback.print_exc()
-            return False
+    with zipfile.ZipFile(path) as content_bundle:
+        for content_file in content_bundle.namelist():
+            with content_bundle.open(content_file) as opened_file:
+                try:
+                    if content_file.endswith('/'):
+                        pass
+                    elif 'Location History' in content_file:
+                        pass
+                    elif 'Google Play Games Services' in content_file:
+                        pass
+                    elif 'Google Play Movies' in content_file:
+                        pass
+                    elif 'YouTube and YouTube Music/playlists' in content_file:
+                        pass
+                    elif 'Takeout/Drive' in content_file:
+                        pass
+                    elif 'Takeout/YouTube and YouTube Music/videos' in content_file:
+                        pass
+                    elif 'archive_browser.html' in content_file:
+                        pass
+                    elif 'music-library-songs.csv' in content_file:
+                        pass
+                    elif 'subscriptions/subscriptions.json' in content_file:
+                        pass
+                    elif 'Takeout/YouTube/playlists' in content_file:
+                        pass
+                    elif re.match(r'^.*\/watch-history.json', content_file):
+                        process_watch_history(request_identifier, opened_file.read())
+                    elif re.match(r'^.*\/search-history.json', content_file):
+                        process_search_history(request_identifier, opened_file.read())
+                    elif re.match(r'^.*\/uploads.json', content_file):
+                        process_uploads(request_identifier, opened_file.read())
+                    elif re.match(r'^.*\/likes.json', content_file):
+                        process_likes(request_identifier, opened_file.read())
+                    elif re.match(r'^.*\/my-comments\/my-comments.html', content_file):
+                        process_comments(request_identifier, opened_file.read())
+                    elif re.match(r'^.*\/my-live-chat-messages\/my-live-chat-messages.html', content_file):
+                        process_messages(request_identifier, opened_file.read())
+                    else:
+                        print('YOUTUBE[' + request_identifier + ']: Unable to process: ' + content_file.encode('ascii', errors='replace')  + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+                except: # pylint: disable=bare-except
+                    traceback.print_exc()
+                    return False
 
     return True
 
