@@ -52,7 +52,7 @@ six==1.16.0
 sphinx-me==0.3
 standardjson==0.3.1
 stevedore==1.32.0
-urllib3==1.25.10
+urllib3==1.26.5
 whitenoise==4.1.2
 XlsxWriter==2.0.0; python_version < '3.4'
 XlsxWriter==3.0.1; python_version >= '3.4'
