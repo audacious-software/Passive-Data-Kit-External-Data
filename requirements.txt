@@ -2,6 +2,8 @@ arrow==0.14.7; python_version < '3.0'
 arrow==1.2.0; python_version >= '3.0'
 bandit==1.7.0; python_version >= '3.0'
 bandit==1.6.2; python_version < '3.0'
+beautifulsoup4==4.10.0; python_version >= '3.0'
+beautifulsoup4==4.8.2; python_version < '3.0'
 boto==2.49.0
 boto3==1.18.57; python_version >= '3.0'
 boto3==1.17.112; python_version < '3.0'
