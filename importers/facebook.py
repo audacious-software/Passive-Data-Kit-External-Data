@@ -634,7 +634,7 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                             except KeyError:
                                 pass # missing autofill_information.json
 
-                        process_messages(request_identifier, content_bundle.open(content_file).read(), full_names)
+                        process_messages(request_identifier, opened_file.read(), full_names)
                     elif content_file.endswith('/'):
                         pass
                     elif content_file.lower().endswith('.jpg'):
