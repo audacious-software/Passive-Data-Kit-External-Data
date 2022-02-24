@@ -54,7 +54,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
     filename = tempfile.gettempdir() + '/pdk_export_' + str(now.timestamp) + str(now.microsecond / 1e6) + '.txt'
 
     if generator == 'pdk-external-events':
-        with io.open(filename, 'w', encoding='utf-8') as outfile:
+        with io.open(filename, 'wb') as outfile:
             writer = csv.writer(outfile, delimiter='\t')
 
             columns = [
@@ -235,7 +235,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
         return filename
 
     elif generator == 'pdk-external-engagement':
-        with io.open(filename, 'w', encoding='utf-8') as outfile:
+        with io.open(filename, 'wb') as outfile:
             definition_query = None
 
             for definition in DataGeneratorDefinition.objects.filter(name__startswith='pdk-external-engagement-'):
