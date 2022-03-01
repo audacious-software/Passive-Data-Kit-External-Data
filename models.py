@@ -11,10 +11,22 @@ import traceback
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.core.checks import Warning, register # pylint: disable=redefined-builtin
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+
+
+@register()
+def check_twilio_settings_defined(app_configs, **kwargs): # pylint: disable=unused-argument
+    errors = []
+
+    if hasattr(settings, 'PDK_EXTERNAL_CONTENT_PUBLIC_KEY') is False:
+        warning = Warning('PDK_EXTERNAL_CONTENT_PUBLIC_KEY parameter not defined', hint='Update configuration to include PDK_EXTERNAL_CONTENT_PUBLIC_KEY (hint: pdk_generate_key_pair).', obj=None, id='passive_data_kit_external_data.W001')
+        errors.append(warning)
+
+    return errors
 
 def annotate_field(container, field_name=None, field_value=None):
     for app in settings.INSTALLED_APPS:
@@ -68,6 +80,8 @@ class ExternalDataSource(models.Model):
     configuration = models.TextField(max_length=(1024*1024), default='{}')
 
     export_url = models.URLField(null=True, blank=True)
+
+    upload_extension = models.CharField(max_length=64, default='zip', null=True)
 
     def instruction_content(self):
         context = {'source': self}
@@ -162,7 +176,8 @@ class ExternalDataRequest(models.Model):
         for source in self.sources.all().order_by('priority'):
             file_dict = {
                 'identifier': source.identifier,
-                'name': source.name
+                'name': source.name,
+                'extension': source.upload_extension
             }
 
             uploaded = self.data_files.filter(source=source).order_by('-uploaded').first()
@@ -205,6 +220,9 @@ class ExternalDataRequestFile(models.Model):
 
     processed = models.DateTimeField(null=True, blank=True)
     skipped = models.DateTimeField(null=True, blank=True)
+
+    def extension(self):
+        return self.source.upload_extension
 
     def encrypted(self):
         if self.data_file is not None:

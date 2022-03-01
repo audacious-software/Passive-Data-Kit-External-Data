@@ -41,7 +41,7 @@ class Command(BaseCommand):
         for file_pk in options['file_pk']:
             query = ExternalDataRequestFile.objects.filter(pk=file_pk)
 
-            if options['file_pk'] < 0:
+            if file_pk < 0:
                 query = ExternalDataRequestFile.objects.filter(pk__gte=(0 - file_pk))
 
             for data_file in query.exclude(processed=None, skipped=None).order_by('pk'):

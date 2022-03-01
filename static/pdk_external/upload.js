@@ -15,8 +15,13 @@ requirejs(['./common'], function (common) {
 			$('input[type=file]').each(function() {
 				var filename = $(this).val();
 				
-				if (filename != "" && filename.toLowerCase().endsWith(".zip") == false) {
-					message = "Please verify that you have only selected ZIP files for upload.";
+				let allowed = $(this).attr('data-extension')
+				
+				console.log("ALLOW")
+				console.log(allowed)
+				
+				if (filename != "" && filename.toLowerCase().endsWith("." + allowed) == false) {
+					message = "Please verify that you have only selected " + allowed.toUppercase() + " files for upload.";
 				};
 			});
 

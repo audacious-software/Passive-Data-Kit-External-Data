@@ -17,8 +17,8 @@ PENDING_POINTS = []
 def hash_content(cleartext):
     sha512 = hashlib.sha512()
 
-    sha512.update(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY)
-    sha512.update(cleartext)
+    sha512.update(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY.encode('utf-8'))
+    sha512.update(cleartext.encode('utf-8'))
 
     return sha512.hexdigest()
 
@@ -51,11 +51,11 @@ def create_engagement_event(source, identifier, start, outgoing_engagement=None,
 
     point = DataPoint.objects.create_data_point('pdk-external-engagement-' + source, identifier, metadata, user_agent='Passive Data Kit External Importer', created=start, skip_save=True, skip_extract_secondary_identifier=True)
 
-    if incoming_engagement > 0:
+    if incoming_engagement is not None and incoming_engagement > 0:
         point.secondary_identifier = 'incoming active'
     elif outgoing_engagement is None:
         point.secondary_identifier = 'none'
-    elif outgoing_engagement > 0:
+    elif outgoing_engagement is not None and outgoing_engagement > 0:
         point.secondary_identifier = 'active'
     else:
         point.secondary_identifier = 'passive'
