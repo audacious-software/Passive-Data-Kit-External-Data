@@ -39,7 +39,7 @@ def fetch_annotation_fields():
 
 def fetch_annotations(properties):
     if isinstance(properties, dict) is False:
-        return 0
+        return {}
 
     if 'pdk_word_count' in properties:
         return {
@@ -49,7 +49,7 @@ def fetch_annotations(properties):
     max_length = 0
 
     for key in properties:
-        if key.startswith('pdk_word_count_'):
+        if key.startswith('pdk_word_count_') and ('url' in key.lower()) is False:
             if properties[key] > max_length:
                 max_length = properties[key]
         else:
@@ -67,9 +67,9 @@ def fetch_annotations(properties):
                     if 'pdk_word_count' in list_max_length and list_max_length['pdk_word_count'] > max_length:
                         max_length = list_max_length['pdk_word_count']
 
-        return {
-            'pdk_word_count': max_length
-        }
+    return {
+        'pdk_word_count': max_length
+    }
 
 def update_data_type_definition(definition):
     for key in definition.keys():
