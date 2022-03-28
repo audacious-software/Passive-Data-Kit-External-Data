@@ -1,7 +1,5 @@
 # pylint: disable=line-too-long
 
-import json
-
 def annotate(content, field_name=None):
     annotations = {}
 
@@ -20,7 +18,7 @@ def fetch_annotation_fields():
 
 
 def fetch_annotations(properties):
-    if isinstance(properties, dict) is False:
+    if properties is None or isinstance(properties, dict) is False:
         return {}
 
     if 'pdk_length' in properties:
@@ -40,13 +38,13 @@ def fetch_annotations(properties):
             if isinstance(value, dict):
                 dict_max_length = fetch_annotations(value)
 
-                if 'pdk_length' in dict_max_length and dict_max_length['pdk_length'] > max_length:
-                    max_length = dict_max_length['pdk_word_count']
+                if dict_max_length is not None and 'pdk_length' in dict_max_length and dict_max_length['pdk_length'] > max_length:
+                    max_length = dict_max_length['pdk_length']
             elif isinstance(value, list):
                 for item in value:
                     list_max_length = fetch_annotations(item)
 
-                    if 'pdk_length' in list_max_length and list_max_length['pdk_length'] > max_length:
+                    if list_max_length is not None and 'pdk_length' in list_max_length and list_max_length['pdk_length'] > max_length:
                         max_length = list_max_length['pdk_length']
 
     return {
