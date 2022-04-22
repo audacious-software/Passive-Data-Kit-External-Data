@@ -18,8 +18,8 @@ def fetch_annotation_fields():
 
 
 def fetch_annotations(properties):
-    if isinstance(properties, dict) is False:
-        return 0
+    if properties is None or isinstance(properties, dict) is False:
+        return {}
 
     if 'pdk_length' in properties:
         return {
@@ -29,7 +29,7 @@ def fetch_annotations(properties):
     max_length = 0
 
     for key in properties:
-        if key.startswith('pdk_length_'):
+        if key.startswith('pdk_length_') and ('url' in key.lower()) is False:
             if properties[key] > max_length:
                 max_length = properties[key]
         else:
@@ -38,18 +38,18 @@ def fetch_annotations(properties):
             if isinstance(value, dict):
                 dict_max_length = fetch_annotations(value)
 
-                if 'pdk_length' in dict_max_length and dict_max_length['pdk_length'] > max_length:
-                    max_length = dict_max_length['pdk_word_count']
-            if isinstance(value, list):
+                if dict_max_length is not None and 'pdk_length' in dict_max_length and dict_max_length['pdk_length'] > max_length:
+                    max_length = dict_max_length['pdk_length']
+            elif isinstance(value, list):
                 for item in value:
                     list_max_length = fetch_annotations(item)
 
-                    if 'pdk_length' in list_max_length and list_max_length['pdk_length'] > max_length:
+                    if list_max_length is not None and 'pdk_length' in list_max_length and list_max_length['pdk_length'] > max_length:
                         max_length = list_max_length['pdk_length']
 
-        return {
-            'pdk_length': max_length
-        }
+    return {
+        'pdk_length': max_length
+    }
 
 def update_data_type_definition(definition):
     for key in definition.keys():
