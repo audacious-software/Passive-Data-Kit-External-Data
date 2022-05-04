@@ -33,7 +33,6 @@ DROP_COLUMNS = (
 
 def process_item(request_identifier, item):
     order_date = arrow.get(item['Order Date'], 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
-    ship_date = arrow.get(item['Shipment Date'], 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
 
     pdk_item = {
         'item': item['Title'],
@@ -51,9 +50,15 @@ def process_item(request_identifier, item):
         'quantity': item['Quantity'],
         'status': item['Order Status'],
         'ordered': order_date.date().isoformat(),
-        'shipped': ship_date.date().isoformat(),
         'pdk_hashed_order_id': hash_content(item['Order ID']),
     }
+
+    ship_date = item['Shipment Date']
+
+    if isinstance(ship_date, str) and ship_date != '':
+        ship_date = arrow.get(item['Shipment Date'], 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
+
+        pdk_item['shipped'] = ship_date.date().isoformat()
 
     release_date = item['Release Date']
 

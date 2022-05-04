@@ -9,6 +9,8 @@ import json
 import random
 import traceback
 
+from six import python_2_unicode_compatible
+
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.checks import Warning, register # pylint: disable=redefined-builtin
@@ -72,6 +74,7 @@ def fetch_annotations(properties):
     return annotations
 
 
+@python_2_unicode_compatible
 class ExternalDataSource(models.Model):
     name = models.CharField(max_length=1024)
     identifier = models.SlugField(max_length=1024, unique=True)
@@ -88,13 +91,14 @@ class ExternalDataSource(models.Model):
 
         return render_to_string('sources/pdk_export_instructions_' + self.identifier + '.html', context=context)
 
-    def __unicode__(self):
+    def __str__(self): # pylint: disable=invalid-str-returned
         return self.name
 
     def fetch_configuration(self):
         return json.loads(self.configuration)
 
 
+@python_2_unicode_compatible
 class ExternalDataRequest(models.Model):
     identifier = models.CharField(max_length=1024)
     email = models.CharField(max_length=1024)
@@ -167,7 +171,7 @@ class ExternalDataRequest(models.Model):
             self.last_emailed = timezone.now()
             self.save()
 
-    def __unicode__(self):
+    def __str__(self): # pylint: disable=invalid-str-returned
         return self.identifier
 
     def request_files(self):
