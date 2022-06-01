@@ -327,3 +327,14 @@ def pdk_external_request(request):
     context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
 
     return render(request, 'pdk_external_request_data_request.html', context=context)
+
+def pdk_external_pending(request, identifier): # pylint: disable=unused-argument
+    response = []
+
+    data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
+
+    if data_request is not None:
+        for request_file in data_request.data_files.filter(processed=None):
+            response.append(request_file.source.identifier)
+
+    return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)
