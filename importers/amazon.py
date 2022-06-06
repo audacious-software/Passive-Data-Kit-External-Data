@@ -32,55 +32,58 @@ DROP_COLUMNS = (
 )
 
 def process_item(request_identifier, item):
-    order_date = arrow.get(item['Order Date'], 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
+    order_date_str = item.get('Order Date', None)
 
-    pdk_item = {
-        'item': item['Title'],
-        'category': item['Category'],
-        'asin': item['ASIN/ISBN'],
-        'unspc_code': item['UNSPSC Code'],
-        'website': item['Website'],
-        'condition': item['Condition'],
-        'seller': item['Seller'],
-        'seller_credentials': item['Seller Credentials'],
-        'list_price': item['List Price Per Unit'],
-        'purchase_price': item['Purchase Price Per Unit'],
-        'purchase_tax': item['Item Subtotal Tax'],
-        'currency': item['Currency'],
-        'quantity': item['Quantity'],
-        'status': item['Order Status'],
-        'ordered': order_date.date().isoformat(),
-        'pdk_hashed_order_id': hash_content(item['Order ID']),
-    }
+    if order_date_str is not None:
+        order_date = arrow.get(order_date_str, 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
 
-    ship_date = item['Shipment Date']
+        pdk_item = {
+            'item': item['Title'],
+            'category': item['Category'],
+            'asin': item['ASIN/ISBN'],
+            'unspc_code': item['UNSPSC Code'],
+            'website': item['Website'],
+            'condition': item['Condition'],
+            'seller': item['Seller'],
+            'seller_credentials': item['Seller Credentials'],
+            'list_price': item['List Price Per Unit'],
+            'purchase_price': item['Purchase Price Per Unit'],
+            'purchase_tax': item['Item Subtotal Tax'],
+            'currency': item['Currency'],
+            'quantity': item['Quantity'],
+            'status': item['Order Status'],
+            'ordered': order_date.date().isoformat(),
+            'pdk_hashed_order_id': hash_content(item['Order ID']),
+        }
 
-    if isinstance(ship_date, str) and ship_date != '':
-        ship_date = arrow.get(item['Shipment Date'], 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
+        ship_date = item['Shipment Date']
 
-        pdk_item['shipped'] = ship_date.date().isoformat()
+        if isinstance(ship_date, str) and ship_date != '':
+            ship_date = arrow.get(item['Shipment Date'], 'M/D/YY').replace(tzinfo=settings.TIME_ZONE, hour=12)
 
-    release_date = item['Release Date']
+            pdk_item['shipped'] = ship_date.date().isoformat()
 
-    if isinstance(release_date, str) and release_date != '':
-        release_date = arrow.get(item['Release Date']).replace(tzinfo=settings.TIME_ZONE, hour=12)
+        release_date = item['Release Date']
 
-        pdk_item['released'] = release_date.date().isoformat()
+        if isinstance(release_date, str) and release_date != '':
+            release_date = arrow.get(item['Release Date']).replace(tzinfo=settings.TIME_ZONE, hour=12)
 
-    payload_keys = list(pdk_item.keys())
+            pdk_item['released'] = release_date.date().isoformat()
 
-    for key in payload_keys:
-        try:
-            if math.isnan(pdk_item[key]):
-                del pdk_item[key]
-        except TypeError:
-            pass
+        payload_keys = list(pdk_item.keys())
 
-    created = order_date.datetime
+        for key in payload_keys:
+            try:
+                if math.isnan(pdk_item[key]):
+                    del pdk_item[key]
+            except TypeError:
+                pass
 
-    DataPoint.objects.create_data_point('pdk-external-amazon-item', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+        created = order_date.datetime
 
-    create_engagement_event(source='amazon', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='purchase', start=created)
+        DataPoint.objects.create_data_point('pdk-external-amazon-item', request_identifier, pdk_item, user_agent='Passive Data Kit External Importer', created=created)
+
+        create_engagement_event(source='amazon', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='purchase', start=created)
 
 
 def import_data(request_identifier, path): # pylint: disable=too-many-branches
