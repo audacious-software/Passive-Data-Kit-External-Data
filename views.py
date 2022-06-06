@@ -335,9 +335,9 @@ def pdk_external_pending(request, identifier): # pylint: disable=unused-argument
 
     if data_request is not None:
         for source in data_request.sources.all():
-            file = data_request.data_files.filter(source=source).first()
+            data_file = data_request.data_files.filter(source=source).first()
 
-            if file is None:
+            if data_file is None:
                 response.append(source.identifier)
 
     return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)
