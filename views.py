@@ -52,6 +52,11 @@ def pdk_external_request_data_help(request, source): # pylint: disable=too-many-
 
     context['source'] = ExternalDataSource.objects.get(identifier=source)
 
+    token = request.GET.get('token', None)
+
+    if token is not None:
+        context['token'] = token
+
     return render(request, 'pdk_external_request_data_help.html', context=context)
 
 

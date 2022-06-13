@@ -63,7 +63,7 @@
 								</p>
 							{% endif %}
 
-						    <a href="{% url 'pdk_external_request_data_help' file.identifier %}" class="card-link" target="_blank" rel="noopener noreferrer">Download Instructions</a>
+						    <a href="{% url 'pdk_external_request_data_help' file.identifier %}?token={{ data_request.token }}" class="card-link" target="_blank" rel="noopener noreferrer">Download Instructions</a>
 						</div>
                 	</div>
 				{% endfor %}

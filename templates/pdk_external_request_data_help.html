@@ -6,4 +6,12 @@
 
 {% block 'page_content' %}
 	{{ source.instruction_content }}
+	
+	{% if token %}
+		<div class="row">
+			<div class="col-12">
+				<a href="{% url 'pdk_external_upload_data' token %}" class="btn btn-primary float-right" target="_top">Next</a>
+			</div>
+		</div>
+	{% endif %}
 {% endblock %}
