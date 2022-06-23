@@ -19,5 +19,5 @@ class ExternalDataRequestAdmin(admin.OSMGeoAdmin):
 
 @admin.register(ExternalDataRequestFile)
 class ExternalDataRequestFileAdmin(admin.OSMGeoAdmin):
-    list_display = ('request', 'id', 'source', 'processed', 'skipped', 'encrypted',)
-    list_filter = ('processed', 'source', 'request')
+    list_display = ('request', 'id', 'source', 'uploaded', 'processed', 'skipped', 'encrypted',)
+    list_filter = ('processed', 'skipped', 'uploaded', 'source', 'request')

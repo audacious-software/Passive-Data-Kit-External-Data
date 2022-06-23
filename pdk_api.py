@@ -44,9 +44,6 @@ def import_external_data(data_source, request_identifier, path):
     return False
 
 def compile_report(generator, sources, data_start=None, data_end=None, date_type='created'): # pylint: disable=too-many-locals, too-many-branches, too-many-statements, too-many-return-statements
-    if (generator in CUSTOM_GENERATORS) is False:
-        return None
-
     now = arrow.get()
 
     here_tz = pytz.timezone(settings.TIME_ZONE)
@@ -330,6 +327,25 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
                     point_index += 1000
         return filename
+
+    try:
+        generator_module = importlib.import_module('.generators.' + generator.replace('-', '_'), package='passive_data_kit_external_data')
+
+        output_file = None
+
+        try:
+            output_file = generator_module.compile_report(generator, sources, data_start=data_start, data_end=data_end, date_type=date_type)
+        except TypeError:
+            print('TODO: Update ' + generator + '.compile_report to support data_start, data_end, and date_type parameters!')
+
+            output_file = generator_module.compile_report(generator, sources)
+
+        if output_file is not None:
+            return output_file
+    except ImportError:
+        pass
+    except AttributeError:
+        pass
 
     return None
 
