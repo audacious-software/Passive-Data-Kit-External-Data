@@ -40,6 +40,7 @@ jobs:
             mv ../passive_data_kit_external_data pdk
             cd pdk
             git clone https://github.com/audacious-software/PassiveDataKit-Django.git passive_data_kit
+            pip install -r passive_data_kit/requirements.txt --progress-bar off
             cp passive_data_kit_external_data/circle_settings.py pdk/settings.py
             python manage.py migrate
             python manage.py test
@@ -87,6 +88,7 @@ jobs:
             mv ../passive_data_kit_external_data pdk
             cd pdk
             git clone https://github.com/audacious-software/PassiveDataKit-Django.git passive_data_kit
+            pip install -r passive_data_kit/requirements.txt --progress-bar off
             cp passive_data_kit_external_data/circle_settings.py pdk/settings.py
             python manage.py migrate
             python manage.py test
