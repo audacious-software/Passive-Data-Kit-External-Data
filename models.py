@@ -86,8 +86,16 @@ class ExternalDataSource(models.Model):
 
     upload_extension = models.CharField(max_length=64, default='zip', null=True)
 
-    def instruction_content(self):
-        context = {'source': self}
+    def instruction_content(self, context=None):
+        if context is None:
+            context = {}
+
+        context['source'] = self
+
+        try:
+            context = context.flatten()
+        except AttributeError:
+            pass
 
         return render_to_string('sources/pdk_export_instructions_' + self.identifier + '.html', context=context)
 

@@ -96,7 +96,7 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
         create_elements = secret_decrypt_content(auto_create)
 
-        tokens = create_elements.decode().split(':')
+        tokens = create_elements.decode().split(':', 3)
 
         if len(tokens) >= 3:
             email = tokens[0]
@@ -105,6 +105,11 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
             request.session['identifier'] = identifier
             request.session['email'] = email
+
+            if len(tokens) >= 4:
+                extras_str = tokens[3]
+
+                request.session['extras'] = json.loads(extras_str)
 
             data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
 
@@ -260,6 +265,9 @@ def pdk_external_upload_data(request, token):
         context['now_time'] = timezone.now()
 
         if request.method == 'POST':
+            context['message'] = 'Unable to upload file successfully. Our staff is investigating the issue.'
+            context['message_type'] = 'danger'
+
             for source in data_request.sources.all():
                 if source.identifier in request.FILES:
                     for file_item in request.FILES.getlist(source.identifier):
@@ -267,6 +275,9 @@ def pdk_external_upload_data(request, token):
                         request_file.data_file = file_item
 
                         request_file.save()
+
+                        context['message'] = 'File uploaded and saved successfully.'
+                        context['message_type'] = 'success'
 
         return render(request, 'pdk_external_request_data_upload.html', context=context)
     else:
