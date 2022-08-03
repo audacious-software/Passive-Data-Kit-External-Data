@@ -356,4 +356,23 @@ def pdk_external_pending(request, identifier): # pylint: disable=unused-argument
             if data_file is None:
                 response.append(source.identifier)
 
+        try:
+            settings.PDK_EXTERNAL_ADD_PENDING_ITEMS(response, data_request)
+        except AttributeError:
+            pass
+
+    return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)
+
+def pdk_external_uploads(request, identifier): # pylint: disable=unused-argument
+    response = []
+
+    data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
+
+    if data_request is not None:
+        for data_file in data_request.data_files.all().exclude(processed=None).order_by('uploaded'):
+            response.append({
+                'source': data_file.source.identifier,
+                'uploaded': data_file.uploaded.isoformat()
+            })
+
     return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)

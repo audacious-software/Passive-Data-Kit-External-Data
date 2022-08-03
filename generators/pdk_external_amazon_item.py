@@ -137,7 +137,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                     row.append(properties['website'])
                     row.append(properties.get('released', ''))
                     row.append(properties['condition'])
-                    row.append(properties['seller'])
+                    row.append(properties.get('seller', ''))
                     row.append(properties.get('seller_credentials', ''))
                     row.append(properties.get('list_price', ''))
                     row.append(properties['purchase_price'])
