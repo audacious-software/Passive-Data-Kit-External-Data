@@ -109,7 +109,12 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
             if len(tokens) >= 4:
                 extras_str = tokens[3]
 
-                request.session['extras'] = json.loads(extras_str)
+                try:
+                    request.session['extras'] = json.loads(extras_str)
+                except json.JSONDecodeError:
+                    request.session['extras'] = {
+                        'extras': extras_str
+                    }
 
             data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
 
