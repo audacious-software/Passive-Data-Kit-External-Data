@@ -242,7 +242,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                 if definition_query is None:
                     definition_query = Q(generator_definition=definition)
                 else:
-                    definition_query = definition_query | Q(generator_definition=definition)
+                    definition_query = definition_query | Q(generator_definition=definition) # pylint: disable=unsupported-binary-operation
 
             writer = csv.writer(outfile, delimiter='\t')
 
