@@ -157,7 +157,6 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
             request.session['identifier'] = identifier
             request.session['email'] = email
-
     elif request.method == 'POST':
         data_request = None
 
@@ -261,11 +260,16 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
 
 def pdk_external_upload_data(request, token):
-    context = {}
+    context = {
+        'needs_upload': False
+    }
 
     data_request = ExternalDataRequest.objects.filter(token=token).first()
 
     if data_request is not None: # pylint: disable=no-else-return
+        if data_request.data_files.count() < data_request.sources.count():
+            context['needs_upload'] = True
+
         context['data_request'] = data_request
         context['now_time'] = timezone.now()
 

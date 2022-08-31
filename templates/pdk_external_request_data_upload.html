@@ -78,7 +78,9 @@
 						</div>
                 	</div>
 				{% endfor %}
-                <button type="submit" class="btn btn-primary float-right">Upload Files</button>
+                {% if needs_upload %}
+	                <button type="submit" class="btn btn-primary float-right">Upload Files</button>
+	            {% endif %}
             </form>
         </div>
     </div>
