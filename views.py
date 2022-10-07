@@ -52,40 +52,111 @@ def pdk_external_request_data_help(request, source): # pylint: disable=too-many-
 
     context['source'] = ExternalDataSource.objects.get(identifier=source)
 
+    token = request.GET.get('token', None)
+
+    if token is not None:
+        context['token'] = token
+
     return render(request, 'pdk_external_request_data_help.html', context=context)
 
 
-def pdk_external_request_data(request, token=None): # pylint: disable=too-many-branches, too-many-statements
+def pdk_external_request_data(request, token=None): # pylint: disable=too-many-branches, too-many-statements, too-many-locals
     context = {}
 
     context['sources'] = ExternalDataSource.objects.all().order_by('priority')
 
-    if request.method == 'GET': # pylint: disable=no-else-return
-        if 'pending_sites' in request.session:
-            del request.session['pending_sites']
+    if request.method == 'GET':
+        auto_create = request.GET.get('auto', None)
 
-        if 'identifier' in request.session:
-            del request.session['identifier']
+        if auto_create is None:
+            if 'pending_sites' in request.session:
+                del request.session['pending_sites']
 
-        if 'email' in request.session:
-            del request.session['email']
+            if 'identifier' in request.session:
+                del request.session['identifier']
 
-        if 'extras' in request.session:
-            del request.session['extras']
+            if 'email' in request.session:
+                del request.session['email']
 
-        if token is not None:
-            cleartext = secret_decrypt_content(urllib.unquote(token))
+            if 'extras' in request.session:
+                del request.session['extras']
 
-            tokens = cleartext.split(':')
+            if token is not None:
+                cleartext = secret_decrypt_content(urllib.unquote(token))
 
-            request.session['identifier'] = tokens[0]
-            request.session['email'] = tokens[1]
+                tokens = cleartext.split(':')
 
-            if len(tokens) > 2:
-                request.session['extras'] = json.loads(base64.b64decode(tokens[2]))
+                request.session['identifier'] = tokens[0]
+                request.session['email'] = tokens[1]
 
-        return render(request, 'pdk_external_request_data_start.html', context=context)
+                if len(tokens) > 2:
+                    request.session['extras'] = json.loads(base64.b64decode(tokens[2]))
 
+            return render(request, 'pdk_external_request_data_start.html', context=context)
+
+        create_elements = secret_decrypt_content(auto_create)
+
+        tokens = create_elements.decode().split(':', 3)
+
+        if len(tokens) >= 3:
+            email = tokens[0]
+            identifier = tokens[1]
+            sites = tokens[2]
+
+            request.session['identifier'] = identifier
+            request.session['email'] = email
+
+            if len(tokens) >= 4:
+                extras_str = tokens[3]
+
+                try:
+                    request.session['extras'] = json.loads(extras_str)
+                except json.JSONDecodeError:
+                    request.session['extras'] = {
+                        'extras': extras_str
+                    }
+
+            data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
+
+            if data_request is None:
+                data_request = ExternalDataRequest(identifier=identifier, requested=timezone.now())
+
+            data_request.email = email
+
+            data_request.save()
+
+            site_ids = sites.split(',')
+
+            pending_sites = []
+            pending_index = 0
+
+            for site_id in site_ids:
+                for source in context['sources']:
+                    if source.identifier == site_id:
+                        pending_sites.append({
+                            'identifier': source.identifier,
+                            'name': source.name,
+                            'index': pending_index,
+                        })
+
+                        data_request.sources.add(source)
+
+                        pending_index += 1
+
+            request.session['pending_sites'] = pending_sites
+            request.session['pending_index'] = 0
+
+            if request.session['pending_index'] < len(pending_sites):
+                for source in context['sources']:
+                    if source.identifier == pending_sites[request.session['pending_index']]['identifier']:
+                        request.session['pending_index'] += 1
+
+                        context['source'] = source
+
+                        return render(request, 'pdk_external_request_data_source.html', context=context)
+
+            request.session['identifier'] = identifier
+            request.session['email'] = email
     elif request.method == 'POST':
         data_request = None
 
@@ -110,10 +181,17 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
             for key in request.POST:
                 request.session['extras'][key] = request.POST[key]
 
-            del request.session['extras']['step']
-            del request.session['extras']['csrfmiddlewaretoken']
-            del request.session['extras']['identifier']
-            del request.session['extras']['email']
+            if 'step' in request.session['extras']:
+                del request.session['extras']['step']
+
+            if 'csrfmiddlewaretoken' in request.session['extras']:
+                del request.session['extras']['csrfmiddlewaretoken']
+
+            if 'identifier' in request.session['extras']:
+                del request.session['extras']['identifier']
+
+            if 'email' in request.session['extras']:
+                del request.session['extras']['email']
 
             for source in context['sources']:
                 if source.identifier in request.session['extras']:
@@ -158,8 +236,7 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
         if data_request is None:
             data_request = ExternalDataRequest(identifier=request.session['identifier'], requested=timezone.now())
-
-        data_request.email = request.session['email']
+            data_request.email = request.session['email']
 
         try:
             data_request.can_email = settings.PDK_EXTERNAL_CAN_EMAIL_DEFAULT
@@ -183,15 +260,23 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
 
 
 def pdk_external_upload_data(request, token):
-    context = {}
+    context = {
+        'needs_upload': False
+    }
 
     data_request = ExternalDataRequest.objects.filter(token=token).first()
 
     if data_request is not None: # pylint: disable=no-else-return
+        if data_request.data_files.count() < data_request.sources.count():
+            context['needs_upload'] = True
+
         context['data_request'] = data_request
         context['now_time'] = timezone.now()
 
         if request.method == 'POST':
+            context['message'] = 'Unable to upload file successfully. Our staff is investigating the issue.'
+            context['message_type'] = 'danger'
+
             for source in data_request.sources.all():
                 if source.identifier in request.FILES:
                     for file_item in request.FILES.getlist(source.identifier):
@@ -199,6 +284,9 @@ def pdk_external_upload_data(request, token):
                         request_file.data_file = file_item
 
                         request_file.save()
+
+                        context['message'] = 'File uploaded and saved successfully.'
+                        context['message_type'] = 'success'
 
         return render(request, 'pdk_external_request_data_upload.html', context=context)
     else:
@@ -264,3 +352,36 @@ def pdk_external_request(request):
     context['request_email'] = render_to_string('email/pdk_external_request_data_request_email.txt', context=mail_context)
 
     return render(request, 'pdk_external_request_data_request.html', context=context)
+
+def pdk_external_pending(request, identifier): # pylint: disable=unused-argument
+    response = []
+
+    data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
+
+    if data_request is not None:
+        for source in data_request.sources.all():
+            data_file = data_request.data_files.filter(source=source).first()
+
+            if data_file is None:
+                response.append(source.identifier)
+
+        try:
+            settings.PDK_EXTERNAL_ADD_PENDING_ITEMS(response, data_request)
+        except AttributeError:
+            pass
+
+    return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)
+
+def pdk_external_uploads(request, identifier): # pylint: disable=unused-argument
+    response = []
+
+    data_request = ExternalDataRequest.objects.filter(identifier=identifier).first()
+
+    if data_request is not None:
+        for data_file in data_request.data_files.all().exclude(processed=None).order_by('uploaded'):
+            response.append({
+                'source': data_file.source.identifier,
+                'uploaded': data_file.uploaded.isoformat()
+            })
+
+    return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)

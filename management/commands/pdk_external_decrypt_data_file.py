@@ -73,12 +73,12 @@ class Command(BaseCommand):
                         except CryptoError:
                             print('Unable to decrypt ' + str(data_file.pk) + ' (CryptoError). Please investigate manually.')
 
-                            if options['file_pk'] > 0:
+                            if file_pk > 0:
                                 traceback.print_exc()
                         except MemoryError:
                             print('Unable to decrypt ' + str(data_file.pk) + ' (MemoryError). Please investigate manually.')
 
-                            if options['file_pk'] > 0:
+                            if file_pk > 0:
                                 traceback.print_exc()
                 except IOError:
                     print('Unable to decrypt ' + str(data_file.pk) + ' (IOError). Please investigate manually.')

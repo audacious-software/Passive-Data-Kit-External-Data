@@ -5,6 +5,7 @@ from __future__ import print_function
 import csv
 import importlib
 import io
+import json
 import pkgutil
 import tempfile
 import traceback
@@ -14,11 +15,13 @@ import pytz
 
 from django.conf import settings
 from django.db.models import Q
+from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.utils import timezone
 
-from passive_data_kit.models import DataSourceReference, DataPoint, DataGeneratorDefinition
+from passive_data_kit.models import DataSourceReference, DataPoint, DataGeneratorDefinition, DataServerApiToken, DataServerAccessRequestPending
 
-from .models import ExternalDataSource
+from .models import ExternalDataSource, ExternalDataRequest
 from .utils import finish_batch_inserts
 
 
@@ -44,9 +47,6 @@ def import_external_data(data_source, request_identifier, path):
     return False
 
 def compile_report(generator, sources, data_start=None, data_end=None, date_type='created'): # pylint: disable=too-many-locals, too-many-branches, too-many-statements, too-many-return-statements
-    if (generator in CUSTOM_GENERATORS) is False:
-        return None
-
     now = arrow.get()
 
     here_tz = pytz.timezone(settings.TIME_ZONE)
@@ -236,7 +236,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                 if definition_query is None:
                     definition_query = Q(generator_definition=definition)
                 else:
-                    definition_query = definition_query | Q(generator_definition=definition)
+                    definition_query = definition_query | Q(generator_definition=definition) # pylint: disable=unsupported-binary-operation
 
             writer = csv.writer(outfile, delimiter='\t')
 
@@ -318,6 +318,25 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
                     point_index += 1000
         return filename
+
+    try:
+        generator_module = importlib.import_module('.generators.' + generator.replace('-', '_'), package='passive_data_kit_external_data')
+
+        output_file = None
+
+        try:
+            output_file = generator_module.compile_report(generator, sources, data_start=data_start, data_end=data_end, date_type=date_type)
+        except TypeError:
+            print('TODO: Update ' + generator + '.compile_report to support data_start, data_end, and date_type parameters!')
+
+            output_file = generator_module.compile_report(generator, sources)
+
+        if output_file is not None:
+            return output_file
+    except ImportError:
+        pass
+    except AttributeError:
+        pass
 
     return None
 
@@ -439,3 +458,133 @@ def update_data_type_definition(definition): # pylint: disable=too-many-branches
         if 'pdk_encrypted_' in key or 'pdk_hashed_' in key:
             if 'observed' in definition[key]:
                 del definition[key]['observed']
+
+def pdk_data_point_query(request): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+    if request.method == 'POST': # pylint: disable=too-many-nested-blocks
+        page_size = int(request.POST['page_size'])
+        page_index = int(request.POST['page_index'])
+
+        filters = json.loads(request.POST['filters'])
+        excludes = json.loads(request.POST['excludes'])
+        order_bys = json.loads(request.POST['order_by'])
+
+        found = False
+
+        for filter_obj in filters:
+            for field, value in list(filter_obj.items()):
+                if value is not None:
+                    if field == 'generator_identifier' and value == 'pdk-external-data-request':
+                        found = True
+
+        if found:
+            query = ExternalDataRequest.objects.all()
+
+            for filter_obj in filters:
+                processed_filter = {}
+
+                for field, value in list(filter_obj.items()):
+                    if field.startswith('created'):
+                        field = field.replace('created', 'requested')
+                    elif field.startswith('recorded'):
+                        field = field.replace('recorded', 'requested')
+                    elif field == 'source':
+                        field = 'identifier'
+
+                    if value is not None:
+                        if field.startswith('requested'):
+                            value = arrow.get(value).datetime
+
+                    if (field in ('generator_identifier',)) is False:
+                        processed_filter[field] = value
+
+                print('INC: %s' % processed_filter)
+
+                query = query.filter(**processed_filter)
+
+            for exclude in excludes:
+                processed_exclude = {}
+
+                for field, value in list(exclude.items()):
+                    if field.startswith('created'):
+                        field = field.replace('created', 'requested')
+                    elif field.startswith('recorded'):
+                        field = field.replace('recorded', 'requested')
+                    elif field == 'source':
+                        field = 'identifier'
+
+                    if value is not None:
+                        if field.startswith('requested'):
+                            value = arrow.get(value).datetime
+
+                    if (field in ('generator_identifier',)) is False:
+                        processed_exclude[field] = value
+
+                print('EXC: %s' % processed_filter)
+
+                query = query.exclude(**processed_exclude)
+
+            latest = query.order_by('-requested').first()
+
+            if latest is not None:
+                latest = latest.pk
+
+            payload = {
+                'latest': latest,
+                'count': query.count(),
+                'page_index': page_index,
+                'page_size': page_size,
+            }
+
+            processed_order_by = []
+
+            for order_by in order_bys:
+                for item in order_by:
+                    processed_order_by.append(item)
+
+            if processed_order_by:
+                query = query.order_by(*processed_order_by)
+
+            matches = []
+
+            if payload['count'] > 0:
+                for item in query[(page_index * page_size):((page_index + 1) * page_size)]:
+                    properties = {
+                        'identifier': item.identifier,
+                        'extras': json.loads(item.extras),
+                        'data_sources': [],
+                        'passive-data-metadata': {},
+                    }
+
+                    for source in item.sources.all():
+                        source_info = {
+                            'name': source.name,
+                            'identifier': source.identifier
+                        }
+
+                        properties['data_sources'].append(source_info)
+
+                    properties['passive-data-metadata']['pdk_server_created'] = arrow.get(item.requested).timestamp()
+                    properties['passive-data-metadata']['pdk_server_recorded'] = arrow.get(item.requested).timestamp()
+
+                    matches.append(properties)
+
+            payload['matches'] = matches
+
+            token = DataServerApiToken.objects.filter(token=request.POST['token']).first()
+
+            access_request = DataServerAccessRequestPending()
+
+            if token is not None:
+                access_request.user_identifier = str(token.user.pk) + ': ' + str(token.user.username)
+            else:
+                access_request.user_identifier = 'api_token: ' + request.POST['token']
+
+            access_request.request_type = 'api-data-points-request'
+            access_request.request_time = timezone.now()
+            access_request.request_metadata = json.dumps(request.POST, indent=2)
+            access_request.successful = True
+            access_request.save()
+
+            return HttpResponse(json.dumps(payload, indent=2), content_type='application/json')
+
+    return None

@@ -17,11 +17,8 @@ requirejs(['./common'], function (common) {
 				
 				let allowed = $(this).attr('data-extension')
 				
-				console.log("ALLOW")
-				console.log(allowed)
-				
-				if (filename != "" && filename.toLowerCase().endsWith("." + allowed) == false) {
-					message = "Please verify that you have only selected " + allowed.toUppercase() + " files for upload.";
+				if (filename != "" && filename.toLowerCase().endsWith("." + allowed.toLowerCase()) == false) {
+					message = "Please verify that you have only selected " + ("" + allowed).toUpperCase() + " files for upload.";
 				};
 			});
 

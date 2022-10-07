@@ -1,9 +1,18 @@
 {% extends "pdk_external_request_base.html" %}
+{% load passive_data_kit_external_data %}
 
 {% block 'page_title' %}{{ source.name }}{% endblock %}
 
 {% block 'page_content_title' %}{{ source.name }}{% endblock %}
 
 {% block 'page_content' %}
-	{{ source.instruction_content }}
+	{% fetch_source_instructions source %}
+	
+	{% if token %}
+		<div class="row">
+			<div class="col-12">
+				<a href="{% url 'pdk_external_upload_data' token %}" class="btn btn-primary float-right" target="_top">Next</a>
+			</div>
+		</div>
+	{% endif %}
 {% endblock %}

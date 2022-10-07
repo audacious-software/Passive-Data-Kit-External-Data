@@ -24,7 +24,7 @@ class Command(BaseCommand):
             if query is None:
                 query = Q(generator_definition=definition)
             else:
-                query = query | Q(generator_definition=definition)
+                query = query | Q(generator_definition=definition) # pylint: disable=unsupported-binary-operation
 
         points = DataPoint.objects.filter(query)
 
