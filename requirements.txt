@@ -1,5 +1,5 @@
-bandit==1.7.2; python_version >= '3.0'
-bandit==1.6.2; python_version < '3.0'
+bandit==1.7.4; python_version >= '3.7'
+bandit==1.6.2; python_version < '3.7'
 Django==1.11.29; python_version < '3.0'
 Django==3.2.16; python_version >= '3.0'
 pylint==2.15.3; python_version >= '3.7'
