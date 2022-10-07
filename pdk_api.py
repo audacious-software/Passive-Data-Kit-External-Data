@@ -70,7 +70,6 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                 'Service',
                 'Event',
                 'Media Type',
-                'Direction',
                 'Outgoing Engagement Score',
                 'Incoming Engagement Score',
             ]
@@ -185,11 +184,6 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                             if engagement is not None:
                                 engagement_metadata = engagement.fetch_properties()
 
-                                if 'engagement_direction' in engagement_metadata:
-                                    columns.append(engagement_metadata['engagement_direction'])
-                                else:
-                                    columns.append('')
-
                                 if 'outgoing_engagement' in engagement_metadata:
                                     columns.append(str(engagement_metadata['outgoing_engagement']))
                                 else:
@@ -254,7 +248,6 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                 'Creation Unix Timestamp',
                 'Service',
                 'Engagement Type',
-                'Direction',
                 'Outgoing Engagement',
                 'Incoming Engagement',
             ]
@@ -306,11 +299,6 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
                             if 'type' in metadata:
                                 columns.append(metadata['type'].lower())
-                            else:
-                                columns.append('')
-
-                            if 'engagement_direction' in metadata:
-                                columns.append(metadata['engagement_direction'])
                             else:
                                 columns.append('')
 
