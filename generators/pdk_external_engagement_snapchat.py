@@ -1,5 +1,6 @@
 # pylint: disable=line-too-long, no-member
 
+import codecs
 import io
 import json
 import time
@@ -58,5 +59,5 @@ def compile_visualization(identifier, points, folder): # pylint: disable=unused-
         'unknown': unknown
     }
 
-    with io.open(folder + '/events.json', 'w', encoding='utf-8') as outfile:
-        json.dump(timestamps, outfile, indent=2)
+    with codecs.open(folder + '/events.json', 'w') as outfile:
+        json.dump(timestamps, outfile, indent=2, ensure_ascii=False)
