@@ -486,7 +486,7 @@ def process_searches(request_identifier, searches_raw):
     if isinstance(searches, dict) is False:
         return
 
-    for search in searches['main_search_history']:
+    for search in searches.get('main_search_history', []):
         created = arrow.get(search['time']).datetime
 
         if include_data(request_identifier, created, search):
@@ -496,6 +496,45 @@ def process_searches(request_identifier, searches_raw):
             }
 
             queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-click', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='search', start=created)
+
+    for search in searches.get('searches_user', []):
+        created = arrow.get(search['string_map_data']['Time']['timestamp']).datetime
+
+        if include_data(request_identifier, created, search):
+            search_click = {
+                'timestamp': search['string_map_data']['Time']['timestamp'],
+                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'].encode('utf-8'))
+            }
+
+            queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-user', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='search', start=created)
+
+    for search in searches.get('searches_keyword', []):
+        created = arrow.get(search['string_map_data']['Time']['timestamp']).datetime
+
+        if include_data(request_identifier, created, search):
+            search_click = {
+                'timestamp': search['string_map_data']['Time']['timestamp'],
+                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'].encode('utf-8'))
+            }
+
+            queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-keyword', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='search', start=created)
+
+    for search in searches.get('searches_hashtag', []):
+        created = arrow.get(search['string_map_data']['Time']['timestamp']).datetime
+
+        if include_data(request_identifier, created, search):
+            search_click = {
+                'timestamp': search['string_map_data']['Time']['timestamp'],
+                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'].encode('utf-8'))
+            }
+
+            queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-hashtag', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
             create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='search', start=created)
 
@@ -650,6 +689,14 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         process_likes(request_identifier, opened_file.read())
                     elif re.search(r'seen_content\.json', content_file):
                         process_seen_content(request_identifier, opened_file.read())
+
+                    elif re.search(r'word_or_phrase_searches\.json', content_file):
+                        process_searches(request_identifier, opened_file.read())
+                    elif re.search(r'account_searches\.json', content_file):
+                        process_searches(request_identifier, opened_file.read())
+                    elif re.search(r'tag_searches\.json', content_file):
+                        process_searches(request_identifier, opened_file.read())
+
                     elif re.search(r'searches\.json', content_file):
                         process_searches(request_identifier, opened_file.read())
                     elif re.search(r'messages\.json', content_file):
