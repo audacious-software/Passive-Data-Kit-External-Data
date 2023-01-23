@@ -450,18 +450,19 @@ def process_seen_content(request_identifier, seen_raw):
     if isinstance(seen, dict) is False:
         return
 
-    for item_seen in seen['chaining_seen']:
-        created = arrow.get(item_seen['timestamp']).datetime
+    if 'chaining_seen' in seen:
+        for item_seen in seen['chaining_seen']:
+            created = arrow.get(item_seen['timestamp']).datetime
 
-        if include_data(request_identifier, created, item_seen):
-            reaction = {
-                'timestamp': item_seen['timestamp'],
-                'pdk_hashed_target': hash_content(item_seen['username'].encode('utf-8'))
-            }
+            if include_data(request_identifier, created, item_seen):
+                reaction = {
+                    'timestamp': item_seen['timestamp'],
+                    'pdk_hashed_target': hash_content(item_seen['username'].encode('utf-8'))
+                }
 
-            queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-page-visit', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-page-visit', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
-            create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='page', start=created)
+                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='page', start=created)
 
     if 'ads_clicked' in seen:
         for item_seen in seen['ads_clicked']:
