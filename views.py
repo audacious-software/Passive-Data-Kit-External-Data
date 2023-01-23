@@ -3,15 +3,17 @@
 from __future__ import unicode_literals
 
 import base64
+import io
 import json
+import os
 import random
 import urllib
 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, FileResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -385,3 +387,17 @@ def pdk_external_uploads(request, identifier): # pylint: disable=unused-argument
             })
 
     return HttpResponse(json.dumps(response, indent=2), content_type='application/json', status=200)
+
+def pdk_download_upload(request, file_id): # pylint: disable=unused-argument
+    upload = get_object_or_404(ExternalDataRequestFile, pk=int(file_id))
+
+    filename = upload.data_file.path
+
+    response = FileResponse(io.open(filename, 'rb'), content_type='application/octet-stream') # pylint: disable=consider-using-with
+
+    download_name = os.path.basename(upload.data_file.name)
+
+    response['Content-Length'] = os.path.getsize(filename)
+    response['Content-Disposition'] = 'attachment; filename=' + download_name
+
+    return response

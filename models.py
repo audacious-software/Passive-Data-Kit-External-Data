@@ -272,3 +272,6 @@ class ExternalDataRequestFile(models.Model):
             self.save()
 
         return file_processed
+
+    def get_absolute_url(self):
+        return reverse('pdk_download_upload', args=[self.pk])
