@@ -252,13 +252,13 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches
                         pass
                     elif content_file.endswith('.mp4'):
                         pass
-                    elif re.match(r'.*\/direct-message\.js', content_file):
+                    elif re.match(r'.*\/direct-message\.js', content_file) or content_file == 'direct-message.js':
                         process_direct_messages(request_identifier, opened_file.read())
-                    elif re.match(r'.*\/direct-messages\.js', content_file):
+                    elif re.match(r'.*\/direct-messages\.js', content_file) or content_file == 'direct-messages.js':
                         process_direct_messages(request_identifier, opened_file.read())
                     # elif re.match(r'^like\.js', content_file[-1]):
                     #    process_likes(request_identifier, content_bundle.open(content_file).read())
-                    elif re.match(r'.*\/tweet\.js', content_file):
+                    elif re.match(r'.*\/tweet\.js', content_file) or content_file == 'tweet.js':
                         process_tweets(request_identifier, opened_file.read())
                     elif re.match(r'.*\/ad-impressions\.js', content_file):
                         process_ad_impressions(request_identifier, opened_file.read())
