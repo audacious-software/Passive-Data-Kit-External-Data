@@ -627,50 +627,50 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         pass
                     elif content_file.endswith('.jpg'):
                         pass
-                    elif re.match(r'^messages\/.*\/message_.*\.html', content_file):
+                    elif re.match(r'messages\/.*\/message_.*\.html', content_file):
                         pass
-                    elif re.match(r'^comments\.json', content_file):
+                    elif re.match(r'comments\.json', content_file):
                         process_comments(request_identifier, opened_file.read())
-                    elif re.match(r'^stories_activities\.json', content_file):
+                    elif re.match(r'stories_activities\.json', content_file):
                         process_stories(request_identifier, opened_file.read())
-                    elif re.match(r'^connections\.json', content_file):
+                    elif re.match(r'connections\.json', content_file):
                         process_connections_events(request_identifier, opened_file.read())
-                    elif re.match(r'^saved\.json', content_file):
+                    elif re.match(r'saved\.json', content_file):
                         process_save_events(request_identifier, opened_file.read())
-                    elif re.match(r'^media\.json', content_file):
+                    elif re.match(r'media\.json', content_file):
                         process_media(request_identifier, opened_file.read())
-                    elif re.match(r'^likes\.json', content_file):
+                    elif re.match(r'likes\.json', content_file):
                         process_likes(request_identifier, opened_file.read())
-                    elif re.match(r'^seen_content\.json', content_file):
+                    elif re.match(r'seen_content\.json', content_file):
                         process_seen_content(request_identifier, opened_file.read())
-                    elif re.match(r'^searches\.json', content_file):
+                    elif re.match(r'searches\.json', content_file):
                         process_searches(request_identifier, opened_file.read())
-                    elif re.match(r'^messages\.json', content_file):
+                    elif re.match(r'messages\.json', content_file):
                         with content_bundle.open('profile.json') as profile_file:
                             profile_json = json.loads(profile_file.read())
 
                             username = profile_json['username']
 
                             process_messages(request_identifier, username, opened_file.read())
-                    elif re.match(r'^ads_and_content\/ads_viewed\.json', content_file):
+                    elif re.match(r'ads_and_content\/ads_viewed\.json', content_file):
                         process_ads_viewed(request_identifier, opened_file.read())
-                    elif re.match(r'^ads_and_content\/posts_viewed\.json', content_file):
+                    elif re.match(r'ads_and_content\/posts_viewed\.json', content_file):
                         process_posts_viewed(request_identifier, opened_file.read())
-                    elif re.match(r'^ads_and_content\/suggested_accounts_viewed\.json', content_file):
+                    elif re.match(r'ads_and_content\/suggested_accounts_viewed\.json', content_file):
                         process_suggested_accounts_viewed(request_identifier, opened_file.read())
-                    elif re.match(r'^ads_and_content\/videos_watched\.json', content_file):
+                    elif re.match(r'ads_and_content\/videos_watched\.json', content_file):
                         process_videos_watched(request_identifier, opened_file.read())
-                    elif re.match(r'^comments\/post_comments\.json', content_file):
+                    elif re.match(r'comments\/post_comments\.json', content_file):
                         process_post_comments(request_identifier, opened_file.read())
-                    elif re.match(r'^posts\/post_.*\.json', content_file):
+                    elif re.match(r'posts\/post_.*\.json', content_file):
                         process_posts_made(request_identifier, opened_file.read())
-                    elif re.match(r'^likes\/liked_comments.json', content_file):
+                    elif re.match(r'likes\/liked_comments.json', content_file):
                         process_liked_comments(request_identifier, opened_file.read())
-                    elif re.match(r'^login_and_account_creation\/login_activity.json', content_file):
+                    elif re.match(r'login_and_account_creation\/login_activity.json', content_file):
                         process_login_activity(request_identifier, opened_file.read())
-                    elif re.match(r'^account_history.json', content_file):
+                    elif re.match(r'account_history.json', content_file):
                         process_account_history(request_identifier, opened_file.read())
-                    elif re.match(r'^messages\/.*\/message_.*\.json', content_file):
+                    elif re.match(r'messages\/.*\/message_.*\.json', content_file):
                         try:
                             with content_bundle.open('account_information/personal_information.json') as info_file:
                                 profile_json = json.loads(info_file.read())
