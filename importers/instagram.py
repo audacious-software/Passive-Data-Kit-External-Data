@@ -331,6 +331,35 @@ def process_comments(request_identifier, comments_raw):
 
                 create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
 
+def process_post_comments(request_identifier, comments_raw):
+    comments = json.loads(comments_raw)
+
+    if isinstance(comments, dict) is False:
+        return
+
+    for key in comments:
+        comment_list = comments[key]
+
+        for comment in comment_list:
+            comment_data = comment.get('string_list_data', None)
+
+            if comment_data is not None:
+                created = arrow.get(comment_data['timestamp']).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
+
+                if include_data(request_identifier, created, comment):
+                    comment_point = {}
+
+                    comment_point['pdk_encrypted_comment'] = encrypt_content(comment_data['value'].encode('utf-8'))
+
+                    annotate_field(comment_point, 'comment', comment_data['value'])
+
+                    comment_point['pdk_hashed_profile'] = hash_content(comment['title'])
+                    comment_point['pdk_encrypted_profile'] = encrypt_content(comment['title'].encode('utf-8'))
+
+                    queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment', request_identifier, comment_point, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+                    create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
+
 def process_media(request_identifier, media_raw):
     media = json.loads(media_raw)
 
@@ -633,9 +662,12 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         pass
                     elif re.search(r'messages\/.*\/message_.*\.html', content_file):
                         pass
-                    elif re.search(r'comments\.json', content_file):
+                    elif re.search(r'\/comments\.json', content_file):
                         print('OPEN: ' + content_file)
                         process_comments(request_identifier, opened_file.read())
+                    elif re.search(r'\/post_comments\.json', content_file):
+                        print('OPEN: ' + content_file)
+                        process_post_comments(request_identifier, opened_file.read())
                     elif re.search(r'stories_activities\.json', content_file):
                         process_stories(request_identifier, opened_file.read())
                     elif re.search(r'connections\.json', content_file):
