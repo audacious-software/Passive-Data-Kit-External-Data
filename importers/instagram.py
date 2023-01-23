@@ -101,7 +101,9 @@ def process_post_comments(request_identifier, post_comments_raw):
             annotate_field(post_comment['string_list_data'], 'value', post_comment['string_list_data']['value'])
             del post_comment['string_list_data']['value']
 
-            created = arrow.get(post_comment['string_map_data']['Time']['timestamp']).datetime
+            created = None
+
+            created = arrow.get(post_comment['string_list_data']['timestamp']).datetime
 
             if include_data(request_identifier, created, post_comment):
                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -330,35 +332,6 @@ def process_comments(request_identifier, comments_raw):
                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment', request_identifier, comment_point, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
                 create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
-
-def process_post_comments(request_identifier, comments_raw):
-    comments = json.loads(comments_raw)
-
-    if isinstance(comments, dict) is False:
-        return
-
-    for key in comments:
-        comment_list = comments[key]
-
-        for comment in comment_list:
-            comment_data = comment.get('string_list_data', None)
-            
-            if comment_data is not None and len(comment_data) > 0:
-                created = arrow.get(comment_data[0]['timestamp']).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
-
-                if include_data(request_identifier, created, comment):
-                    comment_point = {}
-
-                    comment_point['pdk_encrypted_comment'] = encrypt_content(comment_data[0]['value'].encode('utf-8'))
-
-                    annotate_field(comment_point, 'comment', comment_data[0]['value'])
-
-                    comment_point['pdk_hashed_profile'] = hash_content(comment['title'])
-                    comment_point['pdk_encrypted_profile'] = encrypt_content(comment['title'].encode('utf-8'))
-
-                    queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment', request_identifier, comment_point, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
-
-                    create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
 
 def process_media(request_identifier, media_raw):
     media = json.loads(media_raw)
@@ -665,9 +638,6 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                     elif re.search(r'\/comments\.json', content_file):
                         print('OPEN: ' + content_file)
                         process_comments(request_identifier, opened_file.read())
-                    elif re.search(r'\/post_comments\.json', content_file):
-                        print('OPEN: ' + content_file)
-                        process_post_comments(request_identifier, opened_file.read())
                     elif re.search(r'stories_activities\.json', content_file):
                         process_stories(request_identifier, opened_file.read())
                     elif re.search(r'connections\.json', content_file):
