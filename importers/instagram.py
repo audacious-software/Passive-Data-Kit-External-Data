@@ -672,14 +672,18 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         process_account_history(request_identifier, opened_file.read())
                     elif re.match(r'messages\/.*\/message_.*\.json', content_file):
                         try:
-                            with content_bundle.open('account_information/personal_information.json') as info_file:
+                            prefix_index = content_file.index('messages/message_')
+
+                            account_path = '%s%s' % (content_file[:prefix_index], 'account_information/personal_information.json')
+
+                            with content_bundle.open(account_path) as info_file:
                                 profile_json = json.loads(info_file.read())
 
                                 username = profile_json['profile_user'][0]['string_map_data']['Name']['value']
 
                                 process_messages_new(request_identifier, username, opened_file.read())
                         except KeyError:
-                            pass
+                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + account_path)
                     else:
                         print('INSTAGRAM[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
             except: # pylint: disable=bare-except
