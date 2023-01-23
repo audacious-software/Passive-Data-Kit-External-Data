@@ -615,6 +615,10 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         pass
                     elif 'no-data' in content_file:
                         pass
+                    elif '__MACOSX/' in content_file:
+                        pass
+                    elif '.DS_Store' in content_file:
+                        pass
                     elif 'media/archived_posts' in content_file:
                         pass
                     elif 'media/stories' in content_file:
