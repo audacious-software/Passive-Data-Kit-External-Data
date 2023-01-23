@@ -342,16 +342,16 @@ def process_post_comments(request_identifier, comments_raw):
 
         for comment in comment_list:
             comment_data = comment.get('string_list_data', None)
-
-            if comment_data is not None:
-                created = arrow.get(comment_data['timestamp']).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
+            
+            if comment_data is not None and len(comment_data) > 0:
+                created = arrow.get(comment_data[0]['timestamp']).replace(tzinfo=pytz.timezone('US/Pacific')).datetime
 
                 if include_data(request_identifier, created, comment):
                     comment_point = {}
 
-                    comment_point['pdk_encrypted_comment'] = encrypt_content(comment_data['value'].encode('utf-8'))
+                    comment_point['pdk_encrypted_comment'] = encrypt_content(comment_data[0]['value'].encode('utf-8'))
 
-                    annotate_field(comment_point, 'comment', comment_data['value'])
+                    annotate_field(comment_point, 'comment', comment_data['value'][0])
 
                     comment_point['pdk_hashed_profile'] = hash_content(comment['title'])
                     comment_point['pdk_encrypted_profile'] = encrypt_content(comment['title'].encode('utf-8'))
