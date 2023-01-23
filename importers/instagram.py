@@ -634,6 +634,7 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                     elif re.search(r'messages\/.*\/message_.*\.html', content_file):
                         pass
                     elif re.search(r'comments\.json', content_file):
+                        print('OPEN: ' + content_file)
                         process_comments(request_identifier, opened_file.read())
                     elif re.search(r'stories_activities\.json', content_file):
                         process_stories(request_identifier, opened_file.read())
