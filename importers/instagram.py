@@ -351,7 +351,7 @@ def process_post_comments(request_identifier, comments_raw):
 
                     comment_point['pdk_encrypted_comment'] = encrypt_content(comment_data[0]['value'].encode('utf-8'))
 
-                    annotate_field(comment_point, 'comment', comment_data['value'][0])
+                    annotate_field(comment_point, 'comment', comment_data[0]['value'])
 
                     comment_point['pdk_hashed_profile'] = hash_content(comment['title'])
                     comment_point['pdk_encrypted_profile'] = encrypt_content(comment['title'].encode('utf-8'))
