@@ -97,13 +97,13 @@ def process_post_comments(request_identifier, post_comments_raw):
             post_comment['encrypted_title'] = encrypt_content(post_comment['title'].encode('utf-8'))
             del post_comment['title']
 
-            post_comment['string_list_data']['encrypted_value'] = encrypt_content(post_comment['string_list_data']['value'].encode('utf-8'))
-            annotate_field(post_comment['string_list_data'], 'value', post_comment['string_list_data']['value'])
-            del post_comment['string_list_data']['value']
+            post_comment['string_list_data'][0]['encrypted_value'] = encrypt_content(post_comment['string_list_data'][0]['value'].encode('utf-8'))
+            annotate_field(post_comment['string_list_data'][0], 'value', post_comment['string_list_data'][0]['value'])
+            del post_comment['string_list_data'][0]['value']
 
             created = None
 
-            created = arrow.get(post_comment['string_list_data']['timestamp']).datetime
+            created = arrow.get(post_comment['string_list_data'][0]['timestamp']).datetime
 
             if include_data(request_identifier, created, post_comment):
                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -111,7 +111,7 @@ def process_post_comments(request_identifier, post_comments_raw):
                 create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
         except TypeError:
             if warned is False:
-                print('Unexpected structure encountered (process_liked_comments): %s' % json.dumps(post_comment, indent=2))
+                print('Unexpected structure encountered (process_post_comments): %s' % json.dumps(post_comment, indent=2))
                 warned = True
 
 def process_posts_made(request_identifier, posts_made_raw):
