@@ -151,18 +151,41 @@ def process_liked_comments(request_identifier, liked_comments_raw):
 
     for liked_comment in liked_comments['likes_comment_likes']:
         if 'string_map_data' in liked_comment:
-            created = arrow.get(liked_comment['string_map_data']['timestamp']).datetime
+            comment_data = liked_comment.get('string_map_data', None)
 
-            if include_data(request_identifier, created, liked_comment):
-                liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
-                del liked_comment['title']
+            if comment_data is not None:
+                created = arrow.get(comment_data['timestamp']).datetime
 
-                liked_comment['string_list_data']['encrypted_href'] = encrypt_content(liked_comment['string_list_data']['href'].encode('utf-8'))
-                del liked_comment['string_list_data']['href']
+                if include_data(request_identifier, created, liked_comment):
+                    liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
+                    del liked_comment['title']
 
-                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+                    comment_data['encrypted_href'] = encrypt_content(comment_data['href'].encode('utf-8'))
+                    del comment_data['href']
 
-                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+                    queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+                    create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+
+            else:
+                comment_data = liked_comment.get('string_list_data', None)
+
+                if comment_data is not None and len(comment_data) > 0:
+                    comment_data = comment_data[0]
+
+                    created = arrow.get(comment_data['timestamp']).datetime
+
+                    if include_data(request_identifier, created, liked_comment):
+                        liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
+                        del liked_comment['title']
+
+                        comment_data['encrypted_href'] = encrypt_content(comment_data['href'].encode('utf-8'))
+                        del comment_data['href']
+
+                        queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+                        create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+
         elif warned is False:
             print('Unexpected structure encountered (process_liked_comments): %s' % json.dumps(liked_comment, indent=2))
             warned = True
