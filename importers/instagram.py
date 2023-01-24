@@ -97,18 +97,33 @@ def process_post_comments(request_identifier, post_comments_raw):
             post_comment['encrypted_title'] = encrypt_content(post_comment['title'].encode('utf-8'))
             del post_comment['title']
 
-            post_comment['string_list_data'][0]['encrypted_value'] = encrypt_content(post_comment['string_list_data'][0]['value'].encode('utf-8'))
-            annotate_field(post_comment['string_list_data'][0], 'value', post_comment['string_list_data'][0]['value'])
-            del post_comment['string_list_data'][0]['value']
+            if 'string_list_data' in post_comment:
+                post_comment['string_list_data'][0]['encrypted_value'] = encrypt_content(post_comment['string_list_data'][0]['value'].encode('utf-8'))
+                annotate_field(post_comment['string_list_data'][0], 'value', post_comment['string_list_data'][0]['value'])
+                del post_comment['string_list_data'][0]['value']
 
-            created = None
+                created = arrow.get(post_comment['string_list_data'][0]['timestamp']).datetime
 
-            created = arrow.get(post_comment['string_list_data'][0]['timestamp']).datetime
+                if include_data(request_identifier, created, post_comment):
+                    queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
-            if include_data(request_identifier, created, post_comment):
-                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+                    create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
+            elif 'string_map_data' in post_comment:
+                post_comment['string_map_data']['Comment']['encrypted_value'] = encrypt_content(post_comment['string_map_data']['Comment']['value'].encode('utf-8'))
+                annotate_field(post_comment['string_map_data']['Comment'], 'value', post_comment['string_map_data']['Comment']['value'])
+                del post_comment['string_map_data']['Comment']['value']
 
-                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
+                if 'Media owner' in post_comment['string_map_data']:
+                    post_comment['string_map_data']['Media owner']['encrypted_value'] = encrypt_content(post_comment['string_map_data']['Media owner']['value'].encode('utf-8'))
+                    del post_comment['string_map_data']['Media owner']['value']
+
+                created = arrow.get(post_comment['string_map_data']['Comment creation time']['timestamp']).datetime
+
+                if include_data(request_identifier, created, post_comment):
+                    queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-posted', request_identifier, post_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+                    create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=1.0, engagement_type='comment', start=created)
+
         except TypeError:
             if warned is False:
                 print('Unexpected structure encountered (process_post_comments): %s' % json.dumps(post_comment, indent=2))
@@ -154,28 +169,10 @@ def process_liked_comments(request_identifier, liked_comments_raw):
     warned = False
 
     for liked_comment in liked_comments['likes_comment_likes']:
-        comment_data = liked_comment.get('string_map_data', None)
+        try:
+            comment_data = liked_comment.get('string_map_data', None)
 
-        if comment_data is not None:
-            created = arrow.get(comment_data['timestamp']).datetime
-
-            if include_data(request_identifier, created, liked_comment):
-                liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
-                del liked_comment['title']
-
-                comment_data['encrypted_href'] = encrypt_content(comment_data['href'].encode('utf-8'))
-                del comment_data['href']
-
-                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
-
-                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
-
-        else:
-            comment_data = liked_comment.get('string_list_data', None)
-
-            if comment_data is not None and len(comment_data) > 0:
-                comment_data = comment_data[0]
-
+            if comment_data is not None:
                 created = arrow.get(comment_data['timestamp']).datetime
 
                 if include_data(request_identifier, created, liked_comment):
@@ -188,6 +185,33 @@ def process_liked_comments(request_identifier, liked_comments_raw):
                     queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
 
                     create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+            else:
+                comment_data = liked_comment.get('string_list_data', None)
+
+                if comment_data is not None and len(comment_data) > 0: # pylint: disable=len-as-condition
+                    comment_data = comment_data[0]
+
+                    created = arrow.get(comment_data['timestamp']).datetime
+
+                    if include_data(request_identifier, created, liked_comment):
+                        liked_comment['encrypted_title'] = encrypt_content(liked_comment['title'].encode('utf-8'))
+                        del liked_comment['title']
+
+                        comment_data['encrypted_href'] = encrypt_content(comment_data['href'].encode('utf-8'))
+                        del comment_data['href']
+
+                        queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-comment-like', request_identifier, liked_comment, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+                        create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+
+        except TypeError:
+            if warned is False:
+                print('Unexpected structure encountered (process_liked_comments): %s' % json.dumps(liked_comment, indent=2))
+                warned = True
+        except KeyError:
+            if warned is False:
+                print('Unexpected structure encountered (process_liked_comments): %s' % json.dumps(liked_comment, indent=2))
+                warned = True
 
 def process_liked_posts(request_identifier, liked_posts_raw):
     liked_posts = json.loads(liked_posts_raw)
