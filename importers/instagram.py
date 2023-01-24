@@ -338,7 +338,8 @@ def process_messages_new(request_identifier, username, messages_raw):
                 pdk_message['pdk_encrypted_content'] = encrypt_content(message['content'].encode('utf-8'))
 
             if 'share' in message:
-                pdk_message['pdk_encrypted_media_url'] = encrypt_content(message['share']['link'].encode('utf-8'))
+                if 'link' in message['share']:
+	                pdk_message['pdk_encrypted_media_url'] = encrypt_content(message['share']['link'].encode('utf-8'))
 
                 if 'share_text' in message['share']:
                     annotate_field(pdk_message, 'share_text', message['share']['share_text'])
@@ -820,7 +821,7 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                                     username = 'Unknown'
 
                                 process_messages_new(request_identifier, username, opened_file.read())
-                        except KeyError as ex:
+                        except KeyError:
                             print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + content_file)
                             traceback.print_exc()
                     else:
