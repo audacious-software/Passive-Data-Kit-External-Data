@@ -801,7 +801,7 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         process_account_history(request_identifier, opened_file.read())
                     elif re.search(r'messages\/.*\/message_.*\.json', content_file):
                         try:
-                            prefix_index = content_file.index('messages/message_')
+                            prefix_index = content_file.index('messages/')
 
                             account_path = '%s%s' % (content_file[:prefix_index], 'account_information/personal_information.json')
 
