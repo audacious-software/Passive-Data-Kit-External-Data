@@ -328,7 +328,7 @@ def process_messages_new(request_identifier, username, messages_raw):
         if include_data(request_identifier, created, message):
             pdk_message = {
                 'pdk_recipients_count': len(messages['participants']) - 1,
-                'pdk_hashed_senderId': hash_content(message['sender_name'].encode('utf-8')),
+                'pdk_hashed_senderId': hash_content(message['sender_name']),
                 'pdk_encrypted_sender': encrypt_content(message['sender_name'].encode('utf-8')),
                 'created_at': message['timestamp_ms']
             }
@@ -443,7 +443,7 @@ def process_likes(request_identifier, likes_raw):
             if include_data(request_identifier, created, like):
                 reaction = {
                     'timestamp': like[0],
-                    'pdk_hashed_target': hash_content(like[1].encode('utf-8'))
+                    'pdk_hashed_target': hash_content(like[1])
                 }
 
                 reaction['content_type'] = key
@@ -470,7 +470,7 @@ def process_story_likes(request_identifier, likes_raw):
             if include_data(request_identifier, created, like):
                 reaction = {
                     'timestamp': like['string_list_data'][0]['timestamp'],
-                    'pdk_hashed_target': hash_content(like['title'].encode('utf-8'))
+                    'pdk_hashed_target': hash_content(like['title'])
                 }
 
                 reaction['content_type'] = key
@@ -532,7 +532,7 @@ def process_seen_content(request_identifier, seen_raw):
             if include_data(request_identifier, created, item_seen):
                 reaction = {
                     'timestamp': item_seen['timestamp'],
-                    'pdk_hashed_target': hash_content(item_seen['username'].encode('utf-8'))
+                    'pdk_hashed_target': hash_content(item_seen['username'])
                 }
 
                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-page-visit', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -546,7 +546,7 @@ def process_seen_content(request_identifier, seen_raw):
             if include_data(request_identifier, created, item_seen):
                 ad_clicked = {
                     'timestamp': item_seen['timestamp'],
-                    'pdk_hashed_target': hash_content(item_seen['caption'].encode('utf-8'))
+                    'pdk_hashed_target': hash_content(item_seen['caption'])
                 }
 
                 queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-ad-clicked', request_identifier, ad_clicked, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -565,7 +565,7 @@ def process_searches(request_identifier, searches_raw):
         if include_data(request_identifier, created, search):
             search_click = {
                 'timestamp': search['time'],
-                'pdk_hashed_target': hash_content(search['search_click'].encode('utf-8'))
+                'pdk_hashed_target': hash_content(search['search_click'])
             }
 
             queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-click', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -578,7 +578,7 @@ def process_searches(request_identifier, searches_raw):
         if include_data(request_identifier, created, search):
             search_click = {
                 'timestamp': search['string_map_data']['Time']['timestamp'],
-                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'].encode('utf-8'))
+                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'])
             }
 
             queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-user', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -591,7 +591,7 @@ def process_searches(request_identifier, searches_raw):
         if include_data(request_identifier, created, search):
             search_click = {
                 'timestamp': search['string_map_data']['Time']['timestamp'],
-                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'].encode('utf-8'))
+                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'])
             }
 
             queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-keyword', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
@@ -604,7 +604,7 @@ def process_searches(request_identifier, searches_raw):
         if include_data(request_identifier, created, search):
             search_click = {
                 'timestamp': search['string_map_data']['Time']['timestamp'],
-                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'].encode('utf-8'))
+                'pdk_hashed_target': hash_content(search['string_map_data']['Search']['value'])
             }
 
             queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-search-hashtag', request_identifier, search_click, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
