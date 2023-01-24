@@ -812,9 +812,9 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
 
                                 process_messages_new(request_identifier, username, opened_file.read())
                         except KeyError:
-                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + account_path)
+                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + content_file)
                         except ValueError:
-                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + account_path)
+                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + content_file)
                     else:
                         print('INSTAGRAM[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
             except: # pylint: disable=bare-except
