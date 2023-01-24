@@ -31,12 +31,13 @@ jobs:
             sudo apt-get update && sudo apt-get install -y gdal-bin
             python3 -m venv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
+            pip install --upgrade pip
             pip install -r requirements.txt
             cd ..
             mv project passive_data_kit_external_data
             mkdir django
             cd django
-            django-admin.py startproject pdk
+            django-admin startproject pdk
             mv ../passive_data_kit_external_data pdk
             cd pdk
             cp passive_data_kit_external_data/circle_settings.py pdk/settings.py
@@ -80,6 +81,7 @@ jobs:
             sudo apt-get update && sudo apt-get install -y gdal-bin
             virtualenv --copies /home/circleci/venv
             . /home/circleci/venv/bin/activate
+            pip install --upgrade pip
             pip install -r requirements.txt
             cd ..
             mv project passive_data_kit_external_data
