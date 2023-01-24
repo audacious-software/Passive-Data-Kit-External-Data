@@ -805,16 +805,27 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
 
                             account_path = '%s%s' % (content_file[:prefix_index], 'account_information/personal_information.json')
 
+                            print('INSTAGRAM[' + request_identifier + ']: Try (account): ' + account_path)
+
                             with content_bundle.open(account_path) as info_file:
                                 profile_json = json.loads(info_file.read())
 
-                                username = profile_json['profile_user'][0]['string_map_data']['Name']['value']
+                                username = None
+
+                                if 'Username' in profile_json['profile_user'][0]['string_map_data']:
+                                    username = profile_json['profile_user'][0]['string_map_data']['Username']['value']
+
+                                if username is None and 'Name' in profile_json['profile_user'][0]['string_map_data']:
+                                    username = profile_json['profile_user'][0]['string_map_data']['Name']['value']
+
+                                if username is None:
+                                    username = 'Unknown'
 
                                 process_messages_new(request_identifier, username, opened_file.read())
                         except KeyError:
-                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + content_file)
+                            print('INSTAGRAM[' + request_identifier + ']: Unable to open (key): ' + content_file)
                         except ValueError:
-                            print('INSTAGRAM[' + request_identifier + ']: Unable to open: ' + content_file)
+                            print('INSTAGRAM[' + request_identifier + ']: Unable to open (value): ' + content_file)
                     else:
                         print('INSTAGRAM[' + request_identifier + ']: Unable to process: ' + content_file + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
             except: # pylint: disable=bare-except
