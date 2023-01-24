@@ -113,6 +113,10 @@ def process_post_comments(request_identifier, post_comments_raw):
             if warned is False:
                 print('Unexpected structure encountered (process_post_comments): %s' % json.dumps(post_comment, indent=2))
                 warned = True
+        except KeyError:
+            if warned is False:
+                print('Unexpected structure encountered (process_post_comments): %s' % json.dumps(post_comment, indent=2))
+                warned = True
 
 def process_posts_made(request_identifier, posts_made_raw):
     posts_made = json.loads(posts_made_raw)
