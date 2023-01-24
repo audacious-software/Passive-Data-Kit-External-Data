@@ -805,8 +805,6 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
 
                             account_path = '%s%s' % (content_file[:prefix_index], 'account_information/personal_information.json')
 
-                            print('INSTAGRAM[' + request_identifier + ']: Try (account): ' + account_path)
-
                             with content_bundle.open(account_path) as info_file:
                                 profile_json = json.loads(info_file.read())
 
