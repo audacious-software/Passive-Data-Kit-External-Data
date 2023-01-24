@@ -453,6 +453,33 @@ def process_likes(request_identifier, likes_raw):
 
                 create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
 
+def process_story_likes(request_identifier, likes_raw):
+    likes = json.loads(likes_raw)
+
+    if isinstance(likes, dict) is False:
+        return
+
+    keys = ['story_activities_story']
+
+    for key in keys:
+        likes_list = likes[key + '_likes']
+
+        for like in likes_list:
+            created = arrow.get(like['string_list_data'][0]['timestamp']).datetime
+
+            if include_data(request_identifier, created, like):
+                reaction = {
+                    'timestamp': like['string_list_data'][0]['timestamp'],
+                    'pdk_hashed_target': hash_content(like['title'].encode('utf-8'))
+                }
+
+                reaction['content_type'] = key
+                reaction['reaction'] = 'like'
+
+                queue_batch_insert(DataPoint.objects.create_data_point('pdk-external-instagram-reaction', request_identifier, reaction, user_agent='Passive Data Kit External Importer', created=created, skip_save=True, skip_extract_secondary_identifier=True))
+
+                create_engagement_event(source='instagram', identifier=request_identifier, outgoing_engagement=0.5, engagement_type='reaction', start=created)
+
 def process_messages(request_identifier, username, messages_raw):
     conversations = json.loads(messages_raw)
 
@@ -731,6 +758,8 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches, 
                         process_save_events(request_identifier, opened_file.read())
                     elif re.search(r'media\.json', content_file):
                         process_media(request_identifier, opened_file.read())
+                    elif re.search(r'story_likes\.json', content_file):
+                        process_story_likes(request_identifier, opened_file.read())
                     elif re.search(r'likes\.json', content_file):
                         process_likes(request_identifier, opened_file.read())
                     elif re.search(r'seen_content\.json', content_file):
