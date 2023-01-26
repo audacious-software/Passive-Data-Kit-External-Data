@@ -21,7 +21,7 @@ def process_chat_history(request_identifier, json_string):
 
         if include_data(request_identifier, created, message):
             pdk_message = {
-                'pdk_hashed_from': hash_content(message['From'].encode('utf-8')),
+                'pdk_hashed_from': hash_content(message['From']),
                 'pdk_encrypted_from': encrypt_content(message['From'].encode('utf-8')),
                 'pdk_length_from': len(message['From']),
                 'media_type': message['Media Type'],
@@ -37,7 +37,7 @@ def process_chat_history(request_identifier, json_string):
 
         if include_data(request_identifier, created, message):
             pdk_message = {
-                'pdk_hashed_to': hash_content(message['To'].encode('utf-8')),
+                'pdk_hashed_to': hash_content(message['To']),
                 'pdk_encrypted_to': encrypt_content(message['To'].encode('utf-8')),
                 'pdk_length_to': len(message['To']),
                 'media_type': message['Media Type'],
@@ -57,7 +57,7 @@ def process_memories_history(request_identifier, json_string):
 
         if include_data(request_identifier, created, media):
             pdk_media = {
-                'pdk_hashed_download_link': hash_content(media['Download Link'].encode('utf-8')),
+                'pdk_hashed_download_link': hash_content(media['Download Link']),
                 'pdk_encrypted_download_link': encrypt_content(media['Download Link'].encode('utf-8')),
                 'pdk_length_download_link': len(media['Download Link']),
                 'media_type': media['Media Type'],
@@ -77,7 +77,7 @@ def process_shared_story(request_identifier, json_string):
 
         if include_data(request_identifier, created, story):
             pdk_story = {
-                'pdk_hashed_story_id': hash_content(story['Story Id'].encode('utf-8')),
+                'pdk_hashed_story_id': hash_content(story['Story Id']),
                 'pdk_encrypted_story_id': encrypt_content(story['Story Id'].encode('utf-8')),
                 'pdk_length_story_id': len(story['Story Id']),
                 'create_time': story['Created'],
@@ -106,7 +106,7 @@ def process_shared_story(request_identifier, json_string):
 
         if include_data(request_identifier, created, story):
             pdk_story = {
-                'pdk_hashed_story_url': hash_content(story['Story URL'].encode('utf-8')),
+                'pdk_hashed_story_url': hash_content(story['Story URL']),
                 'pdk_encrypted_story_url': encrypt_content(story['Story URL'].encode('utf-8')),
                 'create_time': story['Story Date'],
                 'view_duration': float(story['View Time'].replace(' seconds', '')),
@@ -125,7 +125,7 @@ def process_snap_history(request_identifier, json_string):
 
         if include_data(request_identifier, created, snap):
             pdk_snap = {
-                'pdk_hashed_from': hash_content(snap['From'].encode('utf-8')),
+                'pdk_hashed_from': hash_content(snap['From']),
                 'pdk_encrypted_from': encrypt_content(snap['From'].encode('utf-8')),
                 'pdk_length_from': len(snap['From']),
                 'create_time': snap['Created'],
@@ -141,7 +141,7 @@ def process_snap_history(request_identifier, json_string):
 
         if include_data(request_identifier, created, snap):
             pdk_snap = {
-                'pdk_hashed_to': hash_content(snap['To'].encode('utf-8')),
+                'pdk_hashed_to': hash_content(snap['To']),
                 'pdk_encrypted_to': encrypt_content(snap['To'].encode('utf-8')),
                 'pdk_length_to': len(snap['To']),
                 'create_time': snap['Created'],
@@ -162,10 +162,10 @@ def process_support_notes(request_identifier, json_string):
 
             if include_data(request_identifier, created, note):
                 pdk_note = {
-                    'pdk_hashed_subject': hash_content(note['Subject'].encode('utf-8')),
+                    'pdk_hashed_subject': hash_content(note['Subject']),
                     'pdk_encrypted_subject': encrypt_content(note['Subject'].encode('utf-8')),
                     'pdk_length_subject': len(note['Subject']),
-                    'pdk_hashed_message': hash_content(note['Message'].encode('utf-8')),
+                    'pdk_hashed_message': hash_content(note['Message']),
                     'pdk_encrypted_message': encrypt_content(note['Message'].encode('utf-8')),
                     'pdk_length_message': len(note['Message']),
                     'create_time': note['Create Time'],
