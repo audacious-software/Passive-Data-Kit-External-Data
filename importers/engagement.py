@@ -42,11 +42,9 @@ def update_data_type_definition(definition):
                 if max_value is None:
                     max_value = numeric_value
 
-                if numeric_value < min_value:
-                    min_value = numeric_value
+                min_value = min(min_value, numeric_value)
 
-                if numeric_value > max_value:
-                    max_value = numeric_value
+                max_value = max(max_value, numeric_value)
 
             del definition['duration']['observed']
 
