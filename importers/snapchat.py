@@ -493,3 +493,17 @@ def external_data_metadata(generator_identifier, point):
         metadata['media_type'] = properties['media_type']
 
     return metadata
+
+def data_type_name(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-engagement-'):
+            return 'Snapchat: Engagement Event'
+
+    return None
+
+def data_type_category(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-engagement-'):
+            return 'Passive Data Kit: External Data'
+
+    return 'Passive Data Kit: Snapchat'

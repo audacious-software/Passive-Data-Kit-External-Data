@@ -723,6 +723,20 @@ def external_data_metadata(generator_identifier, point):
 
     return metadata
 
+def data_type_name(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-engagement-'):
+            return 'Facebook: Engagement Event'
+
+    return None
+
+def data_type_category(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-engagement-'):
+            return 'Passive Data Kit: External Data'
+
+    return 'Passive Data Kit: Facebook'
+
 def update_data_type_definition(definition): # pylint: disable=too-many-statements
     if 'pdk-external-facebook-post' in definition['passive-data-metadata.generator-id']['observed']:
         del definition['attachments']

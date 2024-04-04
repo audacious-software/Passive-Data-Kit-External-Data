@@ -880,3 +880,17 @@ def update_data_type_definition(definition):
 
             definition['path']['pdk_variable_name'] = 'Photo path in export file'
             definition['path']['pdk_variable_description'] = 'File path of the photo file in the uploaded Instagram data export.'
+
+def data_type_name(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-engagement-'):
+            return 'Instagram: Engagement Event'
+
+    return None
+
+def data_type_category(definition):
+    for observed in definition['passive-data-metadata.generator-id']['observed']:
+        if observed.startswith('pdk-external-engagement-'):
+            return 'Passive Data Kit: External Data'
+
+    return 'Passive Data Kit: Instagram'
