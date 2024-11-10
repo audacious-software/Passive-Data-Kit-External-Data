@@ -37,7 +37,7 @@ def secret_decrypt_content(cleartext):
 
     return box.decrypt(base64.b64decode(cleartext))
 
-def create_engagement_event(source, identifier, start, outgoing_engagement=None, incoming_engagement=None, engagement_type='unknown', duration=0): # pylint: disable=too-many-arguments
+def create_engagement_event(source, identifier, start, outgoing_engagement=None, incoming_engagement=None, engagement_type='unknown', duration=0): # pylint: disable=too-many-arguments, too-many-positional-arguments
     metadata = {
         'type': engagement_type,
         'duration': duration,
