@@ -211,7 +211,7 @@ def import_data(request_identifier, path): # pylint: disable=too-many-branches
                     elif re.match(r'^.*\/my-live-chat-messages\/my-live-chat-messages.html', content_file):
                         process_messages(request_identifier, opened_file.read())
                     else:
-                        print('YOUTUBE[' + request_identifier + ']: Unable to process: ' + content_file.encode('ascii', errors='replace')  + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
+                        print('YOUTUBE[' + request_identifier + ']: Unable to process: ' + content_file  + ' -- ' + str(content_bundle.getinfo(content_file).file_size))
                 except: # pylint: disable=bare-except
                     traceback.print_exc()
                     return False
