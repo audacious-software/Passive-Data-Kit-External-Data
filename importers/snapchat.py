@@ -501,9 +501,8 @@ def data_type_name(definition):
 
     return None
 
-def data_type_category(definition):
-    for observed in definition['passive-data-metadata.generator-id']['observed']:
-        if observed.startswith('pdk-external-engagement-'):
-            return 'Passive Data Kit: External Data'
+def data_type_category(identifier):
+    if identifier.startswith('pdk-external-engagement-'):
+        return 'Passive Data Kit: External Data'
 
     return 'Passive Data Kit: Snapchat'

@@ -1,6 +1,5 @@
 {% extends "pdk_external_request_base.html" %}
-{% load static from staticfiles %}
-
+{% load static %}
 {% block 'page_title' %}Request Data | Passive Data Kit{% endblock %}
 
 {% block 'page_content_title' %}Request Data | Passive Data Kit{% endblock %}
@@ -14,7 +13,7 @@
                 To send an e-mail request for data, please complete the following fields.
                 An e-mail with instructions will be sent to the address.
             <p>
-            
+
             <form method="POST" action="{% url 'pdk_external_request' %}">
                 {% csrf_token %}
                 <div class="form-group">
@@ -30,7 +29,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <button type="submit" class="btn btn-primary float-right">E-Mail Request</button>
             </form>
         </div>
@@ -38,16 +37,16 @@
         	<p>
         		<em>The following e-mail will be sent:</em>
         	</p>
-        	
+
         	<p>
         		<strong>Subject:</strong> {{ request_email_subject }}
         	</p>
-       		
+
        		{{ request_email|linebreaks }}
         </div>
     </div>
 {% endblock %}
 
-{% block 'js_init' %}		
+{% block 'js_init' %}
 	<script data-main="{% static 'pdk_external/request.js' %}" src="{% static 'pdk_external/lib/require.js' %}"></script>
 {% endblock %}

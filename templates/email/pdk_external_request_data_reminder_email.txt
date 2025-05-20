@@ -1,0 +1,15 @@
+On {{ request.requested.date }} you that you belonged to the following sites:
+{% for source in request.sources.all %}
+* {{ source.name }}{% endfor %}
+
+You have not uploaded data from the following sites:
+{% for source in request.incomplete_sources %}
+* {{ source.name }}{% endfor %}
+
+To upload your data, please visit:
+
+    {{ upload_link }}
+
+Thank you!
+
+- Passive Data Kit

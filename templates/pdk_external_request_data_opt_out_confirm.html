@@ -1,6 +1,5 @@
 {% extends "pdk_external_request_base.html" %}
-{% load static from staticfiles %}
-
+{% load static %}
 {% block 'page_title' %}E-Mail Opt Out | Passive Data Kit{% endblock %}
 
 {% block 'page_content_title' %}E-Mail Opt Out | Passive Data Kit{% endblock %}
@@ -14,14 +13,14 @@
 				<p>
 					To cancel e-mail reminders, tap the button below.
 				</p>
-			
+
 				<p>
 					You will no longer receive reminder e-mails in the future.
 				</p>
 				<form method="POST" action="{% url 'pdk_external_email_opt_out' data_request.token %}" enctype="multipart/form-data">
 					{% csrf_token %}
 					<input type="hidden" name="token" value="{{ data_request.token }}" />
-				
+
 					<button type="submit" class="btn btn-primary">Cancel E-Mail Reminders</button>
 				</form>
 			</div>
@@ -37,6 +36,6 @@
 	{% endif %}
 {% endblock %}
 
-{% block 'js_init' %}		
+{% block 'js_init' %}
 	<script data-main="{% static 'pdk_external/email_opt_out.js' %}" src="{% static 'pdk_external/lib/require.js' %}"></script>
 {% endblock %}

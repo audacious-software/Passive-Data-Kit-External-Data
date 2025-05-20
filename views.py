@@ -61,7 +61,6 @@ def pdk_external_request_data_help(request, source): # pylint: disable=too-many-
 
     return render(request, 'pdk_external_request_data_help.html', context=context)
 
-
 def pdk_external_request_data(request, token=None): # pylint: disable=too-many-branches, too-many-statements, too-many-locals
     context = {}
 
@@ -84,7 +83,7 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
                 del request.session['extras']
 
             if token is not None:
-                cleartext = secret_decrypt_content(urllib.unquote(token))
+                cleartext = secret_decrypt_content(urllib.parse.unquote(token)).decode('utf-8')
 
                 tokens = cleartext.split(':')
 
@@ -92,7 +91,7 @@ def pdk_external_request_data(request, token=None): # pylint: disable=too-many-b
                 request.session['email'] = tokens[1]
 
                 if len(tokens) > 2:
-                    request.session['extras'] = json.loads(base64.b64decode(tokens[2]))
+                    request.session['extras'] = json.loads(base64.b64decode(tokens[2]).decode('utf-8'))
 
             return render(request, 'pdk_external_request_data_start.html', context=context)
 
@@ -322,7 +321,7 @@ def pdk_external_request(request):
         del extras['email']
         del extras['csrfmiddlewaretoken']
 
-        b64_extras = base64.b64encode(json.dumps(extras))
+        b64_extras = base64.b64encode(json.dumps(extras).encode('utf-8')).decode('ascii')
 
         token = secret_encrypt_content((request.POST['identifier'] + ':' + request.POST['email'] + ':' + b64_extras).encode('utf-8'))
 
@@ -336,7 +335,7 @@ def pdk_external_request(request):
         if can_send:
             mail_context = {
                 'requester_name': request.user.get_full_name(),
-                'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.quote(token)}),
+                'request_link': settings.SITE_URL + reverse('pdk_external_request_data_with_params', kwargs={'token': urllib.parse.quote(token)}),
                 'request_extras': extras
             }
 

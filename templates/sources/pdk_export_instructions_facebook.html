@@ -1,19 +1,19 @@
-{% load static from staticfiles %}
+{% load static %}
 <div class="row">
 	<div class="col-5">
 		<h3>Facebook</h3>
-		
+
 		<p class="mt-4">This study uses your Facebook data to do X, Y, and Z.</p>
-		
+
 		<p>Please follow the instructions on the right to request your data.</p>
 	</div>
 	<div class="col-7 pb-5">
 		<h3>Instructions</h3>
-		
+
 		<h5 class="mt-4">1. Login to Facebook.</h5>
-		
+
 		<p>If you have not already, please log into your Facebook account.</p>
-		
+
 		<center>
 			<a href="{% static 'pdk_external/assets/facebook/facebook_main_settings.jpg' %}" data-toggle="lightbox">
                 <img src="{% static 'pdk_external/assets/facebook/facebook_main_settings.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Facebook Settings">
@@ -26,7 +26,7 @@
 		</p>
 
 		<h5 class="mt-5">2. Navigate to data request page.</h5>
-		
+
 		<p>On the <strong>General Account Settings</strong> page, select <strong>Your Facebook Information</strong> from the list on the left side of the page.</p>
 
 		<center>
@@ -46,7 +46,7 @@
 		<p>From the next page, you may export your data from Facebook.</p>
 
 		<h5 class="mt-5">3. Download your information.</h5>
-		
+
 		<p>The <strong>Download Your Information</strong> page allows you to select the parameters for your data download.</p>
 
 		<center>
@@ -54,15 +54,15 @@
                 <img src="{% static 'pdk_external/assets/facebook/facebook_download_form.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Download Form">
             </a>
 		</center>
-		
+
 		<p>For this study, please specify the following options:</p>
-		
+
 		<ul>
 			<li><strong>Date Range:</strong> Select a time duration from 1 year ago to the present.</li>
 			<li><strong>Format:</strong> Select <strong>JSON</strong>.</li>
 			<li><strong>Media Quality:</strong> Select <strong>Medium</strong>.</li>
 		</ul>
-		
+
 		<p>
 			In the <strong>Your Information</strong>, toggle the <strong>Select All</strong> option in the upper-right so that all of the items are <strong>deselected</strong>.
 			After the items have been cleared, for this study, select the following content types:
@@ -81,7 +81,7 @@
 				{% endif %}
 			{% endwith %}
 		</ul>
-		
+
 		<p>
 			With all of the items selected, press the <strong>Create File</strong> button.
 		</p>
@@ -91,18 +91,18 @@
                 <img src="{% static 'pdk_external/assets/facebook/facebook_download_confirm.jpg' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Download Form">
             </a>
 		</center>
-		
+
 		<p>
 			Facebook will display a message indicating that it is creating your file.
 		</p>
 
 		<h5 class="mt-5">4. Upload your information.</h5>
-		
+
 		<p>
 			After Facebook compiles your data file, it will send you an e-mail with a link and notify you within Facebook that your data is ready to be downloaded.
 			Follow the provided instructions to retrieve your file.
 		</p>
-		
+
 		<p>
 			Once you have downloaded your file, follow the instructions in the e-mail you receive from us for a link and instructions for to upload your data to the study.
 		</p>

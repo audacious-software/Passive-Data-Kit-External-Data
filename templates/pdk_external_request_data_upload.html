@@ -1,6 +1,5 @@
 {% extends "pdk_external_request_base.html" %}
-{% load static from staticfiles %}
-
+{% load static %}
 {% block 'page_title' %}Upload Data Files | Passive Data Kit{% endblock %}
 
 {% block 'page_content_title' %}Upload Data Files | Passive Data Kit{% endblock %}
@@ -24,17 +23,17 @@
             <p>
             	Thank you for requesting your data from external sites.
             </p>
-            
+
             <p>
             	You may upload your data to each of the sites you selected using the forms on the right.
             </p>
-            
+
             <p>
             	You do not need to uploade all of the files at once.
             	As you receive data from your sites, you may upload them as they arrive.
             	The server will store and process that data as you upload it.
             </p>
-            
+
             <p>
             	Once you have uploaded data from all of the sites you selected, you are finished with this phase of the project!
             </p>
@@ -42,17 +41,17 @@
         <div class="col-sm">
             <form method="POST" action="{% url 'pdk_external_upload_data' data_request.token %}" enctype="multipart/form-data" id="upload-form">
                 {% csrf_token %}
-                
+
                 {% for file in data_request.request_files %}
 					<div class="card mb-3" style="background-color: {% if file.file %}#A5D6A7{% else %}#EEEEEE{% endif %};">
 						<div class="card-body">
 							<h5 class="card-title">{{ file.name }}</h5>
-						
+
 							{% if file.file %}
 								{% with file.file as request_file %}
 									<p class="card-text">
 										Uploaded: <strong>{{ request_file.uploaded }}</strong><br />
-										Processed: 
+										Processed:
 										{% if request_file.processed %}
 											<strong>{{ request_file.processed }}</strong>
 										{% else %}
@@ -61,7 +60,7 @@
 									</p>
 
 									{% if request_file.processed %}
-							
+
 									{% else %}
 										<p class="card-text">
 											<input type="file" name="{{ file.identifier }}" data-extension="{{ file.extension }}" multiple />
@@ -86,6 +85,6 @@
     </div>
 {% endblock %}
 
-{% block 'js_init' %}		
+{% block 'js_init' %}
 	<script data-main="{% static 'pdk_external/upload.js' %}" src="{% static 'pdk_external/lib/require.js' %}"></script>
 {% endblock %}

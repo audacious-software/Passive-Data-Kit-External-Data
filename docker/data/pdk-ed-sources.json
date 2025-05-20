@@ -1,0 +1,86 @@
+[
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 1,
+    "fields": {
+      "name": "LinkedIn",
+      "identifier": "linkedin",
+      "priority": 11,
+      "configuration": "{}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  },
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 2,
+    "fields": {
+      "name": "Tumblr",
+      "identifier": "tumblr",
+      "priority": 7,
+      "configuration": "{}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  },
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 3,
+    "fields": {
+      "name": "YouTube",
+      "identifier": "youtube",
+      "priority": 6,
+      "configuration": "{}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  },
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 4,
+    "fields": {
+      "name": "Snapchat",
+      "identifier": "snapchat",
+      "priority": 3,
+      "configuration": "{}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  },
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 5,
+    "fields": {
+      "name": "Instagram",
+      "identifier": "instagram",
+      "priority": 2,
+      "configuration": "{}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  },
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 6,
+    "fields": {
+      "name": "Facebook",
+      "identifier": "facebook",
+      "priority": 1,
+      "configuration": "{\r\n\t\"posts\": true,\r\n\t\"comments\": true\r\n}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  },
+  {
+    "model": "passive_data_kit_external_data.externaldatasource",
+    "pk": 7,
+    "fields": {
+      "name": "Chat GPT",
+      "identifier": "chatgpt",
+      "priority": 1,
+      "configuration": "{}",
+      "export_url": null,
+      "upload_extension": "zip"
+    }
+  }
+]

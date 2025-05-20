@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import importlib
 import json
 import random
+import sys
 import traceback
 
 from six import python_2_unicode_compatible
@@ -21,7 +22,7 @@ from django.utils import timezone
 
 
 @register()
-def check_twilio_settings_defined(app_configs, **kwargs): # pylint: disable=unused-argument
+def check_key_pair_settings_defined(app_configs, **kwargs): # pylint: disable=unused-argument
     errors = []
 
     if hasattr(settings, 'PDK_EXTERNAL_CONTENT_PUBLIC_KEY') is False:
@@ -265,6 +266,8 @@ class ExternalDataRequestFile(models.Model):
                     pass
                 except: #pylint: disable=bare-except
                     traceback.print_exc()
+                    sys.stdout.flush()
+
                     file_processed = False
 
         if file_processed:

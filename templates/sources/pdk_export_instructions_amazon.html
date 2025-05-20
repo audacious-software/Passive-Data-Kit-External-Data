@@ -1,19 +1,19 @@
-{% load static from staticfiles %}
+{% load static %}
 <div class="row">
 	<div class="col-5">
 		<h3>Amazon</h3>
-		
+
 		<p class="mt-4">This study uses your Amazon data to do X, Y, and Z.</p>
-		
+
 		<p>Please follow the instructions on the right to request your data.</p>
 	</div>
 	<div class="col-7 pb-5">
 		<h3>Instructions</h3>
 
 		<h5 class="mt-5">1. Navigate to Order History Reports.</h5>
-		
+
 		<p>Visit Amazon's <a href="https://www.amazon.com/gp/b2b/reports" target="_blank">Order History Report</a>. Login if needed.</p>
-		
+
 		<center>
 			<a href="{% static 'pdk_external/assets/amazon/amazon_request.png' %}" data-toggle="lightbox">
                 <img src="{% static 'pdk_external/assets/amazon/amazon_request.png' %}" class="img-fluid rounded border mb-3" style="width: 66%;" alt="Request Amazon Data">
@@ -23,11 +23,11 @@
 		<p>For the <strong>Report Type</strong> option, verify that <strong>Items</strong> is selected.</p>
 
 		<p>For the <strong>Start Date</strong> and <strong>End Date</strong> options, select the desired date range to constrain the reporting period.</p>
-				
+
 		<h5 class="mt-5">2. Request your data.</h5>
 
 		<p>Click the <strong>Request Report</strong> button to begin exporting your order data.</p>
-		
+
 		<p>
 			Leave the browser window open and monitor the progress of the report creation in the <strong>Your Reports</strong> table.
 			Once the page refreshes when the report is complete, click the <strong>Download</strong> link to retrieve a CSV file of your order history.

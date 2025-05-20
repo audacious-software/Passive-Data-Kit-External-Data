@@ -15,6 +15,9 @@ PENDING_POINTS_LIMIT = 1000
 PENDING_POINTS = []
 
 def hash_content(cleartext):
+    if settings.PDK_EXTERNAL_CONTENT_DISABLE_HASHING is not False:
+        return 'hashing-disabled:%s' % cleartext.decode('utf-8')
+
     sha512 = hashlib.sha512()
 
     sha512.update(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY.encode('utf-8'))
@@ -23,9 +26,12 @@ def hash_content(cleartext):
     return sha512.hexdigest()
 
 def encrypt_content(cleartext):
+    if settings.PDK_EXTERNAL_CONTENT_DISABLE_ENCRYPTION is not False:
+        return 'encryption-disabled:%s' % cleartext.decode('utf-8')
+
     box = SealedBox(PublicKey(base64.b64decode(settings.PDK_EXTERNAL_CONTENT_PUBLIC_KEY)))
 
-    return base64.b64encode(box.encrypt(cleartext))
+    return base64.b64encode(box.encrypt(cleartext)).decode('ascii')
 
 def secret_encrypt_content(cleartext):
     box = SecretBox(base64.b64decode(settings.PDK_EXTERNAL_CONTENT_SYMETRIC_KEY))
